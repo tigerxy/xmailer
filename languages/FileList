@@ -1,0 +1,14 @@
+./jobs/process_xmailer.php
+./controllers/single_page/dashboard/xmailer/mailboxes.php
+./controllers/single_page/dashboard/xmailer/settings.php
+./controllers/single_page/dashboard/xmailer/mailboxes/user.php
+./controllers/single_page/dashboard/xmailer/mailboxes/group.php
+./controllers/single_page/dashboard/xmailer.php
+./single_pages/dashboard/xmailer/view.php
+./single_pages/dashboard/xmailer/settings.php
+./single_pages/dashboard/xmailer/mailboxes/user.php
+./single_pages/dashboard/xmailer/mailboxes/group.php
+./single_pages/dashboard/xmailer/mailboxes/view.php
+./controller.php
+./elements/dashboard/uninstall.php
+./src/Basic.php

@@ -1,0 +1,148 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-12-06 06:12+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: jobs/process_xmailer.php:18 jobs/process_xmailer.php:23
+msgid "Mailinglist"
+msgstr ""
+
+#: jobs/process_xmailer.php:57
+#, php-format
+msgid "%d email sent to %d People."
+msgstr ""
+
+#: jobs/process_xmailer.php:59
+msgid "No emails sent."
+msgstr ""
+
+#: controllers/single_page/dashboard/xmailer/settings.php:17
+msgid "IMAP Host is not ok."
+msgstr ""
+
+#: controllers/single_page/dashboard/xmailer/settings.php:20
+msgid "IMAP User is not ok."
+msgstr ""
+
+#: controllers/single_page/dashboard/xmailer/settings.php:23
+msgid "IMAP Port is not ok."
+msgstr ""
+
+#: controllers/single_page/dashboard/xmailer/settings.php:37
+msgid "Settings Saved."
+msgstr ""
+
+#: controllers/single_page/dashboard/xmailer/mailboxes/user.php:22
+#: controllers/single_page/dashboard/xmailer/mailboxes/group.php:22
+msgid "Invalid ID"
+msgstr ""
+
+#: controllers/single_page/dashboard/xmailer/mailboxes/user.php:25
+msgid "No users selected."
+msgstr ""
+
+#: controllers/single_page/dashboard/xmailer/mailboxes/user.php:28
+#: controllers/single_page/dashboard/xmailer/mailboxes/group.php:28
+msgid "Invalid email address."
+msgstr ""
+
+#: controllers/single_page/dashboard/xmailer/mailboxes/user.php:34
+msgid "User added."
+msgstr ""
+
+#: controllers/single_page/dashboard/xmailer/mailboxes/user.php:37
+msgid "User updated."
+msgstr ""
+
+#: controllers/single_page/dashboard/xmailer/mailboxes/group.php:25
+msgid "No users or groups selected."
+msgstr ""
+
+#: controllers/single_page/dashboard/xmailer/mailboxes/group.php:34
+msgid "Group added successfully"
+msgstr ""
+
+#: controllers/single_page/dashboard/xmailer/mailboxes/group.php:37
+msgid "Group update successfully"
+msgstr ""
+
+#: single_pages/dashboard/xmailer/settings.php:29
+msgid "Leave blank to keep current password."
+msgstr ""
+
+#: single_pages/dashboard/xmailer/settings.php:51
+msgid "Port (Leave blank for default)"
+msgstr ""
+
+#: single_pages/dashboard/xmailer/settings.php:62
+msgid "Spam defence"
+msgstr ""
+
+#: single_pages/dashboard/xmailer/settings.php:67
+msgid "Forward only Emails form regitred Users"
+msgstr ""
+
+#: single_pages/dashboard/xmailer/settings.php:75
+msgid "Allow this Adresses"
+msgstr ""
+
+#: single_pages/dashboard/xmailer/settings.php:78
+msgid "(Seperate multiple emails with a comma)"
+msgstr ""
+
+#: single_pages/dashboard/xmailer/settings.php:85
+#: single_pages/dashboard/xmailer/mailboxes/user.php:26
+#: single_pages/dashboard/xmailer/mailboxes/group.php:26
+msgid "Save"
+msgstr ""
+
+#: single_pages/dashboard/xmailer/mailboxes/user.php:3
+#: single_pages/dashboard/xmailer/mailboxes/user.php:5
+#: single_pages/dashboard/xmailer/mailboxes/view.php:5
+msgid "User"
+msgstr ""
+
+#: single_pages/dashboard/xmailer/mailboxes/user.php:17
+#: single_pages/dashboard/xmailer/mailboxes/user.php:19
+#: single_pages/dashboard/xmailer/mailboxes/group.php:17
+#: single_pages/dashboard/xmailer/mailboxes/group.php:19
+#: single_pages/dashboard/xmailer/mailboxes/view.php:6
+#: single_pages/dashboard/xmailer/mailboxes/view.php:24
+msgid "Email"
+msgstr ""
+
+#: single_pages/dashboard/xmailer/mailboxes/group.php:3
+#: single_pages/dashboard/xmailer/mailboxes/group.php:5
+#: single_pages/dashboard/xmailer/mailboxes/view.php:23
+msgid "Group"
+msgstr ""
+
+#: single_pages/dashboard/xmailer/mailboxes/view.php:1
+msgid "Users"
+msgstr ""
+
+#: single_pages/dashboard/xmailer/mailboxes/view.php:19
+msgid "Groups"
+msgstr ""
+
+#: controller.php:20
+msgid "xMailer to send emails to usergroupes and users."
+msgstr ""
+
+#: controller.php:25
+msgid "xMailer"
+msgstr ""
