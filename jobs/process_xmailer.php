@@ -82,9 +82,9 @@ class ProcessXmailer extends AbstractJob
     
     private function getIsEmailInSystem($email) {
         //array_push($Adresses, Config::get('xmailer.allow'));
-        $info = new UserInfo();
-        $user = $info->getByEmail($email);
-        return $user != null;
+        $grp = new UserList();
+        $grp->filterByKeywords($email);
+        return $grp->getTotalResults() > 0;
     }
     
     private function getEmailAdresses($toAdresses) {
@@ -108,19 +108,21 @@ class ProcessXmailer extends AbstractJob
     }
     
     private function getEmailAdressesByGroupId($gId) {
+        $db = \Database::connection();
         $grp = new UserList();
         $grp->filterByGroupID($gId);
         $list = $grp->getResultIDs();
-        $mailads = [];
-        foreach ($list as $uId) {
-            array_push($mailads, $this->getEmailAdressesByUserId($uId));
+        $mailads = array();
+        foreach ($list as $uID) {
+            array_push($mailads, $db->fetchColumn('SELECT uEmail FROM Users WHERE uID = ?', [$uID]));
         }
         return $mailads;
     }
     
-    private function getEmailAdressesByUserId($uId) {
+    /*private function getEmailAdressesByUserId($uId) {
+        //veraltet
         $info = new UserInfo();
         $user = $info->getByID($uId);
         return $user->uEmail;
-    }
+    }*/
 }
