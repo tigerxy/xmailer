@@ -12,7 +12,7 @@
             <td><a href="<?=URL::to('/dashboard/xmailer/mailboxes', 'user', $user["bID"])?>"><?=$user["uName"]?></a></td>
             <td><a href="<?=URL::to('/dashboard/xmailer/mailboxes', 'user', $user["bID"])?>"><?=$user["email"]?></a></td>
         <tr>
-        <? } ?>
+        <?php } ?>
     </tbody>
 </table>
 
@@ -30,6 +30,6 @@
             <td><a href="<?=URL::to('/dashboard/xmailer/mailboxes', 'group', $group["bID"])?>"><?=$group["gName"]?></a></td>
             <td><a href="<?=URL::to('/dashboard/xmailer/mailboxes', 'group', $group["bID"])?>"><?=$group["email"]?></a></td>
         <tr>
-        <? } ?>
+        <?php } ?>
     </tbody>
 </table>
