@@ -1,0 +1,1 @@
+<input type="checkbox" name="removeFrontendContent" value="1" /> Remove front-end pages beneath /store.

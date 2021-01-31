@@ -6,14 +6,15 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 use \Concrete\Core\Package\Package;
 use \Concrete\Core\Page\Single as SinglePage;
 use \Concrete\Core\Job\Job as Job;
+//use \Concrete\Core\Mail\Importer\MailImporter as MailImporter;
 //use \Concrete\Core\Block\BlockType\BlockType;
 
 class Controller extends Package
 {
 
     protected $pkgHandle = 'xmailer';
-    protected $appVersionRequired = '5.7.4.2';
-    protected $pkgVersion = '1.0';
+    protected $appVersionRequired = '8.5.4';
+    protected $pkgVersion = '2.0';
 
     public function getPackageDescription()
     {
@@ -30,12 +31,24 @@ class Controller extends Package
         $pkg = parent::install();
         //BlockType::installBlockTypeFromPackage('Mailer', $pkg);
         Job::installByPackage('process_xmailer', $pkg);
+        Job::installByPackage('send_xmailer', $pkg);
+        //MailImporter::add(array('miHandle' => 'xmailer'), $pkg);
         SinglePage::add('/dashboard/xmailer', $pkg);
         SinglePage::add('/dashboard/xmailer/mailboxes', $pkg);
         SinglePage::add('/dashboard/xmailer/mailboxes/user', $pkg);
         SinglePage::add('/dashboard/xmailer/mailboxes/group', $pkg);
         SinglePage::add('/dashboard/xmailer/settings', $pkg);
     }
+
+    public function upgrade() {
+        parent::upgrade();
+        $pkg = Package::getByHandle('xmailer');
+        Job::installByPackage('process_xmailer', $pkg);
+        Job::installByPackage('send_xmailer', $pkg);
+        //MailImporter::remove(array('miHandle' => 'xmailer'), $pkg);
+
+    }
+
     // public function uninstall()
     // {
     //     parent::uninstall();
