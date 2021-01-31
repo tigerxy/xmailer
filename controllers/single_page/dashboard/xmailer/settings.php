@@ -25,6 +25,7 @@ class Settings extends DashboardPageController {
 		$this->set('ssl_options', $this->ssl_options);
 	}
 	public function submit() {
+		$encryptor = \Core::make("helper/encryption");
 		$vt = Loader::Helper('validation/strings');
 		$vn = Loader::Helper('validation/numbers');
 
@@ -50,7 +51,7 @@ class Settings extends DashboardPageController {
 			Config::save('xmailer.imap.host', $this->post('imap_host'));
 			Config::save('xmailer.imap.user', $this->post('imap_user'));
 			if ($vt->notempty($this->post('imap_password'))) {
-				Config::save('xmailer.imap.password', $this->post('imap_password'));
+				Config::save('xmailer.imap.password', $encryptor->encrypt($this->post('imap_password')));
 			}
 			Config::save('xmailer.imap.ssl', $this->post('imap_ssl'));
 			Config::save('xmailer.imap.port', $this->post('imap_port'));
@@ -58,7 +59,7 @@ class Settings extends DashboardPageController {
 			Config::save('xmailer.smtp.host', $this->post('smtp_host'));
 			Config::save('xmailer.smtp.user', $this->post('smtp_user'));
 			if ($vt->notempty($this->post('smtp_password'))) {
-				Config::save('xmailer.smtp.password', $this->post('smtp_password'));
+				Config::save('xmailer.smtp.password', $encryptor->encrypt($this->post('smtp_password')));
 			}
 			Config::save('xmailer.smtp.ssl', $this->post('smtp_ssl'));
 			Config::save('xmailer.smtp.port', $this->post('smtp_port'));
