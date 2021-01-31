@@ -28,6 +28,7 @@ class Controller extends Package
 
     public function install()
     {
+        $this->setupAutoloader();
         $pkg = parent::install();
         //BlockType::installBlockTypeFromPackage('Mailer', $pkg);
         Job::installByPackage('process_xmailer', $pkg);
@@ -55,5 +56,23 @@ class Controller extends Package
     //     $db = \Database::connection();
     //     $db->query('drop table xMailer');
     // }
+
+    /**
+     * Initialize the autoloader when the system boots up.
+     */
+    public function on_start()
+    {
+        $this->setupAutoloader();
+    }
+
+    /**
+     * Configure the autoloader
+     */
+    private function setupAutoloader()
+    {
+        if (file_exists($this->getPackagePath() . '/vendor')) {
+            require_once $this->getPackagePath() . '/vendor/autoload.php';
+        }
+    }
 }
 ?>

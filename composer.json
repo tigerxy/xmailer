@@ -1,0 +1,25 @@
+{
+    "name": "roland/xmailer",
+    "type" : "concrete5-package",
+    "authors": [
+        {
+            "name": "Roland Greim",
+            "email": "roland@stempelgreim.de"
+        }
+    ],
+    "require": {
+        "concrete5/core": ">=8.5.0",
+        "zetacomponents/base": "^1.9",
+        "zetacomponents/mail": "^1.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "Xmailer\\": "src/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "5.5.9"
+        }
+    }
+}
