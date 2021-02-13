@@ -1,11 +1,11 @@
 <?php
 namespace Concrete\Package\Xmailer\Controller\SinglePage\Dashboard\Xmailer;
 use Concrete\Core\Page\Controller\DashboardPageController;
-use Config;
+use Xmailer\Config as XmailerConfig;
 use Loader;
 
 class Settings extends DashboardPageController {
-	private $ssl_options = array( 
+	/*private $ssl_options = array( 
 		"imap" => array(
 			"tcp" => array("desc" => "Plain", "port" => 143),
 			"ssl" => array("desc" => "SSL/TLS", "port" => 993)
@@ -17,17 +17,22 @@ class Settings extends DashboardPageController {
 			"sslv3" => array("desc" => "SSLv3", "port" => 465),
 			"tls" => array("desc" => "TLS", "port" => 465)
 		)
-	);
+	);*/
 	public function view() {
-		$this->set('config', Config::get('xmailer'));
+		$config = new XmailerConfig();
+		/*$this->set('config', Config::get('xmailer'));
 		$this->set('imap', Config::get('xmailer.imap'));
 		$this->set('smtp', Config::get('xmailer.smtp'));
-		$this->set('ssl_options', $this->ssl_options);
+		$this->set('ssl_options', $this->ssl_options);*/
+		$this->set('config',$config);
+		// $this->set('imap', $config->imap);
+		// $this->set('smtp', $config->smtp);
 	}
 	public function submit() {
 		$encryptor = \Core::make("helper/encryption");
 		$vt = Loader::Helper('validation/strings');
 		$vn = Loader::Helper('validation/numbers');
+		$config = new Config();
 
 		if (!$vt->notempty($this->post('imap_host'))) {
 			$this->error->add(t('IMAP Host is not ok.'));
@@ -48,25 +53,24 @@ class Settings extends DashboardPageController {
 			$this->error->add(t('SMTP Port is not ok.'));
 		}
 		if (!$this->error->has()) {
-			Config::save('xmailer.imap.host', $this->post('imap_host'));
-			Config::save('xmailer.imap.user', $this->post('imap_user'));
-			if ($vt->notempty($this->post('imap_password'))) {
-				Config::save('xmailer.imap.password', $encryptor->encrypt($this->post('imap_password')));
+			foreach (array('imap'=>$config->imap,'smtp'=>$config->smtp) as $name => $conf) {
+				$conf->setHost($this->post($name.'_host'));
+				$conf->setUser($this->post($name.'_user'));
+				if ($vt->notempty($this->post($name.'_password'))) {
+					$conf->setPass($encryptor->encrypt($this->post($name.'_password')));
+				}
+				$conf->setSSL($this->post($name.'_ssl'));
+				if ($vt->notempty($this->post($name.'_port'))) {
+					$conf->setPort($this->post($name.'_port'));
+				} else {
+					$conf->setPort(0);
+				}
 			}
-			Config::save('xmailer.imap.ssl', $this->post('imap_ssl'));
-			Config::save('xmailer.imap.port', $this->post('imap_port'));
-
-			Config::save('xmailer.smtp.host', $this->post('smtp_host'));
-			Config::save('xmailer.smtp.user', $this->post('smtp_user'));
-			if ($vt->notempty($this->post('smtp_password'))) {
-				Config::save('xmailer.smtp.password', $encryptor->encrypt($this->post('smtp_password')));
-			}
-			Config::save('xmailer.smtp.ssl', $this->post('smtp_ssl'));
-			Config::save('xmailer.smtp.port', $this->post('smtp_port'));
 			
-			Config::save('xmailer.spam', ($this->post('spam') == 1));
-			Config::save('xmailer.replyto', ($this->post('replyto') == 1));
-			Config::save('xmailer.allow', preg_split("/[\s,;]+/", $this->post('allow')));
+			$config->setSpam($this->post('spam') == 1);
+			$config->setReplyTo($this->post('replyto') == 1);
+			$config->setAllow(preg_split("/[\s,;]+/", $this->post('allow')));
+			$config->setAddPageName($this->post('addpagename') == 1);
 			
 			$this->set('success', t('Settings Saved.'));
 		}

@@ -1,43 +1,49 @@
+<?php
+// use Xmailer\Config as XConf;
+// $config =  new XConf();
+// $smtp = $config->smtp;
+// $imap = $config->imap;
+?>
+
 <script>
-var ssl_options = <?= json_encode($ssl_options) ?>;
+var ssl_options = <?= $config->allSslOptionsToJson() ?>;
 
 function updatePort(e) {
     var section = e.id.split("_")[0];
-    var port = ssl_options[section][e.value]["port"];
-    document.getElementById(section + "_port").placeholder = port;
-    console.log(section, port);
+    var o = ssl_options[section].filter(o => o.id == e.value)[0];
+    document.getElementById(section + "_port").placeholder = o.port;
 }
 </script>
 <form class="form-horizontal" method="post" action="<?=$view->action('submit')?>">
+    <?php foreach (array('imap'=>$config->imap,'smtp'=>$config->smtp) as $name => $conf) { ?>
     <fieldset>
-
         <!-- Form Name -->
-        <legend>IMAP</legend>
+        <legend><?=strtoupper($name)?></legend>
 
         <!-- Text input-->
         <div class="form-group">
-            <label class="col-md-4 control-label" for="SMTP Host">IMAP Host</label>
+            <label class="col-md-4 control-label" for="SMTP Host"><?=strtoupper($name)?> Host</label>
             <div class="col-md-4">
-                <input id="imap_host" name="imap_host" type="text" placeholder="Host" class="form-control input-md"
-                    required="required" value="<?=$imap['host']?>" />
+                <input id="<?=$name?>_host" name="<?=$name?>_host" type="text" placeholder="Host" class="form-control input-md"
+                    required="required" value="<?=$conf->getHost()?>" />
             </div>
         </div>
 
         <!-- Text input-->
         <div class="form-group">
-            <label class="col-md-4 control-label" for="textinput">IMAP User</label>
+            <label class="col-md-4 control-label" for="textinput"><?=strtoupper($name)?> User</label>
             <div class="col-md-4">
-                <input id="imap_user" name="imap_user" type="text" placeholder="User" class="form-control input-md"
-                    required="required" value="<?=$imap['user']?>" />
+                <input id="<?=$name?>_user" name="<?=$name?>_user" type="text" placeholder="User" class="form-control input-md"
+                    required="required" value="<?=$conf->getUser()?>" />
 
             </div>
         </div>
 
         <!-- Password input-->
         <div class="form-group">
-            <label class="col-md-4 control-label" for="passwordinput">IMAP Password</label>
+            <label class="col-md-4 control-label" for="passwordinput"><?=strtoupper($name)?> Password</label>
             <div class="col-md-4">
-                <input id="imap_password" name="imap_password" type="password" placeholder="Password"
+                <input id="<?=$name?>_password" name="<?=$name?>_password" type="password" placeholder="Password"
                     class="form-control input-md" value="" />
                 <span class="help-block"><?=t('Leave blank to keep current password.')?></span>
 
@@ -46,13 +52,13 @@ function updatePort(e) {
 
         <!-- Select Basic -->
         <div class="form-group">
-            <label class="col-md-4 control-label" for="selectbasic">SSL</label>
+            <label class="col-md-4 control-label" for="selectbasic"><?=strtoupper($name)?> SSL</label>
             <div class="col-md-4">
-                <select id="imap_ssl" name="imap_ssl" class="form-control" value="<?=$imap['ssl']?>"
-                    onchange="updatePort(this)" />
-                <?php foreach ($ssl_options['imap'] as $key => $value) { ?>
-                <option value="<?=$key?>" <?=$key==$imap['ssl']?' selected':''?>>
-                    <?=$value['desc']?>
+                <select id="<?=$name?>_ssl" name="<?=$name?>_ssl" class="form-control"
+                    onchange="updatePort(this)" autocomplete="off" />
+                <?php foreach ($conf->ssl_options as $opt) { ?>
+                <option value="<?=$opt->getId()?>"<?=$opt->isSelected()?' selected':''?>>
+                    <?=$opt->getDescription()?>
                 </option>
                 <?php } ?>
                 </select>
@@ -61,78 +67,17 @@ function updatePort(e) {
 
         <!-- Text input-->
         <div class="form-group">
-            <label class="col-md-4 control-label" for="textinput">Port</label>
+            <label class="col-md-4 control-label" for="textinput"><?=strtoupper($name)?> Port</label>
             <div class="col-md-4">
-                <input id="imap_port" name="imap_port" type="number"
-                    placeholder="<?= $ssl_options['imap'][$imap['ssl']]['port'] ?>" class="form-control input-md"
-                    value="<?=$imap['port']?>" />
+                <input id="<?=$name?>_port" name="<?=$name?>_port" type="number"
+                    placeholder="<?= $conf->ssl_options->selected()->getPort() ?>" class="form-control input-md"
+                    value="<?=$conf->getPort() > 0 ? $conf->getPort() : ''?>" />
                 <span class="help-block"><?=t('Port (Leave blank for default)')?></span>
             </div>
         </div>
 
     </fieldset>
-    <fieldset>
-
-        <!-- Form Name -->
-        <legend>SMTP</legend>
-
-        <!-- Text input-->
-        <div class="form-group">
-            <label class="col-md-4 control-label" for="SMTP Host">SMTP Host</label>
-            <div class="col-md-4">
-                <input id="smtp_host" name="smtp_host" type="text" placeholder="Host" class="form-control input-md"
-                    required="required" value="<?=$smtp['host']?>" />
-            </div>
-        </div>
-
-        <!-- Text input-->
-        <div class="form-group">
-            <label class="col-md-4 control-label" for="textinput">SMTP User</label>
-            <div class="col-md-4">
-                <input id="smtp_user" name="smtp_user" type="text" placeholder="User" class="form-control input-md"
-                    required="required" value="<?=$smtp['user']?>" />
-
-            </div>
-        </div>
-
-        <!-- Password input-->
-        <div class="form-group">
-            <label class="col-md-4 control-label" for="passwordinput">SMTP Password</label>
-            <div class="col-md-4">
-                <input id="smtp_password" name="smtp_password" type="password" placeholder="Password"
-                    class="form-control input-md" value="" />
-                <span class="help-block"><?=t('Leave blank to keep current password.')?></span>
-
-            </div>
-        </div>
-
-        <!-- Select Basic -->
-        <div class="form-group">
-            <label class="col-md-4 control-label" for="selectbasic">Transport Option</label>
-            <div class="col-md-4">
-                <select id="smtp_ssl" name="smtp_ssl" class="form-control" value="<?=$smtp['ssl']?>"
-                    onchange="updatePort(this)" />
-                <?php foreach ($ssl_options['smtp'] as $key => $value) { ?>
-                <option value="<?=$key?>"<?=$key==$smtp['ssl']?' selected':''?>>
-                    <?=$value['desc']?>
-                </option>
-                <?php } ?>
-                </select>
-                <span class="help-block"><?=t('Please select TLS or SSL')?></span>
-            </div>
-        </div>
-
-        <!-- Text input-->
-        <div class="form-group">
-            <label class="col-md-4 control-label" for="textinput">Port</label>
-            <div class="col-md-4">
-                <input id="smtp_port" name="smtp_port" type="number" placeholder="<?= $ssl_options['smtp'][$smtp['ssl']]['port'] ?>"
-                    class="form-control input-md" value="<?=$smtp['port']?>" />
-                <span class="help-block"><?=t('Port (Leave blank for default)')?></span>
-            </div>
-        </div>
-
-    </fieldset>
+    <?php } ?>
     <fieldset>
 
         <!-- Form Name -->
@@ -144,14 +89,14 @@ function updatePort(e) {
                 <div class="checkbox">
                     <label for="checkboxes-0">
                         <input type="checkbox" name="spam" id="spam" value="1"
-                            <?php if($config['spam']) echo 'checked = "checked"'; ?> />
+                            <?php if($config->getSpam()) echo 'checked = "checked"'; ?> />
                         <?=t('Forward only Emails form registred Users')?>
                     </label>
                 </div>
                 <div class="checkbox">
                     <label for="checkboxes-1">
                         <input type="checkbox" name="replyto" id="replyto" value="1"
-                            <?php if($config['replyto']) echo 'checked = "checked"'; ?> />
+                            <?php if($config->getReplyTo()) echo 'checked = "checked"'; ?> />
                         <?=t('Add from email adress as reply-to')?>
                     </label>
                 </div>
@@ -163,8 +108,27 @@ function updatePort(e) {
             <label class="col-md-4 control-label" for="textarea"><?=t('Allow this Adresses')?></label>
             <div class="col-md-4">
                 <textarea class="form-control" id="allow"
-                    name="allow"><?php if ($config['allow'] != null) echo implode(", ", $config['allow']); ?></textarea>
+                    name="allow"><?php if ($config->getAllow() != null) echo implode(", ", $config->getAllow()); ?></textarea>
                 <span class="help-block"><?=t('(Seperate multiple emails with a comma)')?></span>
+            </div>
+        </div>
+
+    </fieldset>
+    <fieldset>
+
+        <!-- Form Name -->
+        <legend>More Settings</legend>
+        <!-- Multiple Checkboxes -->
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="checkboxes">Verhalten</label>
+            <div class="col-md-4">
+                <div class="checkbox">
+                    <label for="checkboxes-0">
+                        <input type="checkbox" name="addpagename" id="addpagename" value="1"
+                            <?=$config->getAddPageName() ? ' checked' : ''?> />
+                        Seitennamen zu Betreff hinzufügen
+                    </label>
+                </div>
             </div>
         </div>
 
