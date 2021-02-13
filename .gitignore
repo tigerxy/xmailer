@@ -1,1 +1,11 @@
 /vendor/
+dev/settings-form/.gitignore
+dev/settings-form/package-lock.json
+dev/settings-form/package.json
+dev/settings-form/README.md
+dev/settings-form/rollup.config.js
+dev/settings-form/tsconfig.json
+dev/settings-form/.vscode/extensions.json
+dev/settings-form/public/index.html
+dev/settings-form/src/Formular.svelte
+dev/settings-form/src/main.ts
