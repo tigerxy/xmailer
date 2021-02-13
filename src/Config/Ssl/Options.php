@@ -1,17 +1,23 @@
 <?php
+
 namespace Xmailer\Config\Ssl;
+
 use Xmailer\Config\AbstractServer as AbstractServer;
 use IteratorIterator;
 use ArrayIterator;
 
-class Options extends IteratorIterator {
-    public function __construct(Option ...$options) {
+class Options extends IteratorIterator
+{
+    public function __construct(Option ...$options)
+    {
         parent::__construct(new ArrayIterator($options));
     }
-    public function current(): Option {
+    public function current(): Option
+    {
         return parent::current();
     }
-    public function selected(): Option {
+    public function selected(): Option
+    {
         foreach ($this as $option) {
             if ($option->isSelected()) {
                 return $option;
@@ -19,7 +25,8 @@ class Options extends IteratorIterator {
         }
         return iterator_to_array(parent::getInnerIterator())[0];
     }
-    public function toArray(): Array {
+    public function toArray(): array
+    {
         return iterator_to_array(parent::getInnerIterator());
     }
 }
