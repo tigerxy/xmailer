@@ -3,7 +3,7 @@
 namespace Concrete\Package\Xmailer\Controller\SinglePage\Dashboard\Xmailer;
 
 use Concrete\Core\Page\Controller\DashboardPageController;
-use Xmailer\Config;
+use Xmailer\Config\Config;
 
 // FIXME: Replace these:
 use Concrete\Core\Legacy\Loader;

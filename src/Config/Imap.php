@@ -15,5 +15,8 @@ class Imap extends AbstractServer
             new Option($this, "ssl", "SSL/TLS", 993)
         );
     }
+    public function useSSL(): bool {
+        return $this->getSSL() == 'ssl';
+    }
     protected String $sub_path = '.imap';
 }

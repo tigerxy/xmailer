@@ -27,9 +27,7 @@ class Imap extends ezcMailImapTransport
         // you can specify a different one using the second parameter of the constructor).
         $this->imap_conn_options = new ezcMailImapTransportOptions();
         //$imap_options->uidReferencing = false;
-        if ($config->getSSL() == 'ssl') {
-            $this->imap_conn_options->ssl = true;
-        }
+        $this->imap_conn_options->ssl = $config->useSSL();
 
         // Create a new IMAP transport object by specifying the server name
         parent::__construct(

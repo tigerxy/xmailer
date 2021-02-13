@@ -37,10 +37,11 @@ class Controller extends Package
         Job::installByPackage('process_xmailer', $pkg);
         Job::installByPackage('send_xmailer', $pkg);
         //MailImporter::add(array('miHandle' => 'xmailer'), $pkg);
-        SinglePage::add('/dashboard/xmailer', $pkg);
+        //SinglePage::add('/dashboard/xmailer', $pkg);
         SinglePage::add('/dashboard/xmailer/mailboxes', $pkg);
         SinglePage::add('/dashboard/xmailer/mailboxes/user', $pkg);
         SinglePage::add('/dashboard/xmailer/mailboxes/group', $pkg);
+        SinglePage::add('/dashboard/xmailer/mailboxes/mailbox', $pkg);
         SinglePage::add('/dashboard/xmailer/settings', $pkg);
     }
 

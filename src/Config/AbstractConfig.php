@@ -2,6 +2,7 @@
 
 namespace Xmailer\Config;
 
+// FIXME: Replace these:
 use Concrete\Core\Support\Facade\Config as C5Config;
 
 abstract class AbstractConfig

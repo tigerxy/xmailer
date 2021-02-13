@@ -3,10 +3,13 @@
 namespace Concrete\Package\Xmailer\Job;
 
 use Concrete\Core\Job\Job;
+use Xmailer\Config\Mailinglists;
+use Xmailer\Config\Mailinglist;
 use Xmailer\Imap;
 use Xmailer\Imap\Mail;
 use Xmailer\Imap\Folder;
 use \ezcMail;
+use \ezcMailAddress;
 
 // FIXME: Replace these:
 use Concrete\Core\Support\Facade\Config;
@@ -28,25 +31,27 @@ class ProcessXmailer extends Job
     public function run()
     {
         echo '<pre>';
+        $lists = new Mailinglists();
+        $lists->readFromConfig();
         $conn = new Imap();
         $rootFolder = new Folder($conn, 'Inbox');
 
         $mails = $rootFolder->getMails();
         //print_r($mails);
 
+
+        print_r(iterator_to_array($lists));
         foreach ($mails as $mail) {
-            print_r($mail->getAllRecivers());
+            $mail->matchMailToMailinglists($lists);
+            print_r($mail);
+            $mail->cleanHeaders();
+            print_r($mail);
         }
 
-        /*while ( $conn->next() ) {
-            $mail = $conn->getMail();
-            $from = $mail->from;
-            $to_all = array_merge( $mail->to, $mail->cc, $mail->bcc );
-            var_dump( $from, $to_all );
-        }*/
         echo '</pre>';
         die();
     }
+
 
     private function formatSubject(Mail $mail): Mail
     {

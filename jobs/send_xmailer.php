@@ -4,7 +4,7 @@ namespace Concrete\Package\Xmailer\Job;
 
 use Concrete\Core\Job\Job;
 use Xmailer\Imap;
-use Xmailer\Config;
+use Xmailer\Config\Config;
 
 class SendXmailer extends Job
 {

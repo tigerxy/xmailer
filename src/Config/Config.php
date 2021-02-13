@@ -1,10 +1,12 @@
 <?php
 
-namespace Xmailer;
+namespace Xmailer\Config;
 
+/*
 use Xmailer\Config\Imap;
 use Xmailer\Config\Smtp;
 use Xmailer\Config\AbstractConfig as AbstractConfig;
+*/
 
 class Config extends AbstractConfig
 {

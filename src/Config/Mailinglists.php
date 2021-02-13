@@ -7,14 +7,14 @@ use Concrete\Core\Support\Facade\Config as C5Config;
 
 class Mailinglists extends ArrayIterator
 {
-    public function __construct()
+    public function readFromConfig(): void
     {
-        $config = C5Config::get('xmailer.lists');
-        $lists = array();
-        foreach ($config as $list) {
-            array_push($lists, new Mailinglist($list));
+        if ($this->empty()) {
+            $config = C5Config::get('xmailer.lists');
+            foreach ($config as $list) {
+                $this->append(new Mailinglist($list));
+            }
         }
-        parent::__construct($lists);
     }
     public function current(): Mailinglist
     {
@@ -23,5 +23,17 @@ class Mailinglists extends ArrayIterator
     public function offsetGet($offset): Mailinglist
     {
         return parent::offsetGet($offset);
+    }
+    // public function append(Mailinglist $value): void
+    // {
+    //     parent::append($value);
+    // }
+    public function empty(): bool
+    {
+        return $this->count() == 0;
+    }
+    public function first(): Mailinglist
+    {
+        return $this[0];
     }
 }
