@@ -1,4 +1,5 @@
 <?php
+
 namespace Concrete\Package\Xmailer;
 
 defined('C5_EXECUTE') or die(_("Access Denied."));
@@ -45,7 +46,8 @@ class Controller extends Package
         SinglePage::add('/dashboard/xmailer/settings', $pkg);
     }
 
-    public function upgrade() {
+    public function upgrade()
+    {
         parent::upgrade();
         $pkg = Package::getByHandle('xmailer');
         Job::installByPackage('process_xmailer', $pkg);
@@ -67,6 +69,14 @@ class Controller extends Package
     public function on_start()
     {
         $this->setupAutoloader();
+        $al = \Concrete\Core\Asset\AssetList::getInstance();
+        $al->register(
+            'javascript',
+            'xmailer-settings-form',
+            'src/js/settings-form.js',
+            array(),
+            $this->pkgHandle
+        );
     }
 
     /**
@@ -79,4 +89,3 @@ class Controller extends Package
         }
     }
 }
-?>

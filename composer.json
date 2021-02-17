@@ -1,6 +1,6 @@
 {
     "name": "roland/xmailer",
-    "type" : "concrete5-package",
+    "type": "concrete5-package",
     "authors": [
         {
             "name": "Roland Greim",
@@ -14,7 +14,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Xmailer\\Job\\": "src/"
+            "Xmailer\\": "src/"
         }
     },
     "config": {

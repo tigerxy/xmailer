@@ -3,8 +3,9 @@
 namespace Xmailer\Config;
 
 use Xmailer\Config\Ssl\Options;
+use \JsonSerializable;
 
-abstract class AbstractServer extends AbstractConfig
+abstract class AbstractServer extends AbstractConfig implements JsonSerializable
 {
     public Options $ssl_options;
     protected String $sub_path;
@@ -42,7 +43,9 @@ abstract class AbstractServer extends AbstractConfig
     }
     public function setPass(String $val)
     {
-        $this->setVal('password', $val);
+        if ($val != '') {
+            $this->setVal('password', $val);
+        }
     }
     public function setPort(Int $val)
     {
@@ -51,5 +54,15 @@ abstract class AbstractServer extends AbstractConfig
     public function setSSL(String $val)
     {
         $this->setVal('ssl', $val);
+    }
+    public function jsonSerialize($hidePassword = True)
+    {
+        return [
+            'host' => $this->getHost(),
+            'user' => $this->getUser(),
+            'password' => $hidePassword ? '' : $this->getPass(),
+            'ssl' => $this->getSSL(),
+            'port' => $this->getPort()
+        ];
     }
 }

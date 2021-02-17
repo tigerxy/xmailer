@@ -11,21 +11,21 @@ use ezcMailParser;
 use ezcMailParserSet;
 use ezcMailParserOptions;
 
-class Folder
+class Mailbox
 {
     const INBOX = 'Inbox';
     const SENT = 'Sent';
     const SPAM = 'Spam';
 
     private Imap $imap;
-    private string $folder;
-    private ?Folder $parentFolder;
+    private string $mailbox;
+    private ?Mailbox $parentMailbox;
 
-    public function __construct(Imap $imap, string $folder, Folder $parentFolder = null)
+    public function __construct(Imap $imap, string $mailbox, Mailbox $parentMailbox = null)
     {
         $this->imap = $imap;
-        $this->folder = $folder;
-        $this->parentFolder = $parentFolder;
+        $this->mailbox = $mailbox;
+        $this->parentMailbox = $parentMailbox;
     }
 
     public function sendFirst($number)
@@ -33,7 +33,7 @@ class Folder
         $smtp = new Smtp();
         $unansweredMsgNrs = $this->imap->searchMailbox(Mail::UNFLAGGED)->getMessageNumbers();
         // Get maximal $number Message Ids
-        $msgNrs = array_slice($unansweredMsgNrs, 0, $number);
+        $msgNrs = array_slice((array) $unansweredMsgNrs, 0, $number);
         foreach ($msgNrs as $msgNr) {
             $set = $this->imap->fetchByMessageNr($msgNr, false);
             // parse $set with ezcMailParser
@@ -50,52 +50,52 @@ class Folder
         // Get maximal 10 Message Ids
         foreach ($answeredMsgNrs as $msgNr) {
             $this->imap->clearFlag($msgNr, Mail::FLAGGED);
-            $this->imap->moveMessage($msgNr, $this->getSentFolder()->getFolderPath());
+            $this->imap->moveMessage($msgNr, $this->getSentMailbox()->getMailboxPath());
         }
         $this->imap->expunge();
     }
 
     public function getMails()
     {
-        $this->selectFolder();
+        $this->selectMailbox();
         return $this->imap->getMails();
     }
 
-    private function moveMail(Mail $mail, Folder $folder)
+    private function moveMail(Mail $mail, Mailbox $mailbox)
     {
-        $this->imap->moveMessage($mail->messageNr, $folder->getFolderPath());
+        $this->imap->moveMessage($mail->messageNr, $mailbox->getMailboxPath());
     }
 
-    private function selectFolder(): void
+    private function selectMailbox(): void
     {
-        $this->imap->selectMailbox($this->getCurrentFolder());
+        $this->imap->selectMailbox($this->getCurrentMailbox());
         $this->imap->createMailboxIfNotExist();
     }
 
-    private function getCurrentFolder(): string
+    private function getCurrentMailbox(): string
     {
-        return $this->getFolderPath() . $this->folder;
+        return $this->getMailboxPath() . $this->mailbox;
     }
 
-    private function getInboxFolder(): Folder
+    private function getInboxMailbox(): Mailbox
     {
-        return new Folder($this->imap, self::INBOX, $this);
+        return new Mailbox($this->imap, self::INBOX, $this);
     }
 
-    private function getSpamFolder(): Folder
+    private function getSpamMailbox(): Mailbox
     {
-        return new Folder($this->imap, self::SPAM, $this);
+        return new Mailbox($this->imap, self::SPAM, $this);
     }
 
-    private function getSentFolder(): Folder
+    private function getSentMailbox(): Mailbox
     {
-        return new Folder($this->imap, self::SENT, $this);
+        return new Mailbox($this->imap, self::SENT, $this);
     }
 
-    private function getFolderPath(): string
+    private function getMailboxPath(): string
     {
-        if ($this->parentFolder != null) {
-            return $this->parentFolder->getFolderPath() . '\\';
+        if ($this->parentMailbox != null) {
+            return $this->parentMailbox->getMailboxPath() . '\\';
         } else {
             return '';
         }

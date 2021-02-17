@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width,initial-scale=1'>
+
+	<title>Settings Formular</title>
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+
+	<script>
+		var settings = {
+			'spam': true,
+			'replyto': true,
+			'addpagename': true,
+			'imap': {
+				'host': 'mx2f3e.netcup.net',
+				'user': 'test@cvjm-forchheim.de',
+				'password': 'Ywx671r*',
+				'ssl': 'ssl',
+				'port': 993,
+			},
+			'allow': [],
+			'smtp': {
+				'host': 'smtp.ethereal.email',
+				'user': 'xzavier.towne@ethereal.email',
+				'password': 'vjczrQXHGRnZCs7aFD',
+				'ssl': 'tls',
+				'port': 587,
+			},
+			'lists': [
+				{
+					'name': 'Test',
+					'email': 'test@cvjm-forchheim.de',
+					'mailbox': 'Test',
+					'grpId': 0
+				}
+			]
+		};
+		var sslOptions = {};
+	</script>
+	<script defer src='/build/bundle.js'></script>
+</head>
+
+<body>
+	<div id="settings-form"></div>
+</body>
+
+</html>

@@ -7,7 +7,7 @@ use Xmailer\Config\Mailinglists;
 use Xmailer\Config\Mailinglist;
 use Xmailer\Imap;
 use Xmailer\Imap\Mail;
-use Xmailer\Imap\Folder;
+use Xmailer\Imap\Mailbox;
 use \ezcMail;
 use \ezcMailAddress;
 
@@ -34,17 +34,19 @@ class ProcessXmailer extends Job
         $lists = new Mailinglists();
         $lists->readFromConfig();
         $conn = new Imap();
-        $rootFolder = new Folder($conn, 'Inbox');
+        $rootMailbox = new Mailbox($conn, 'Inbox');
 
-        $mails = $rootFolder->getMails();
+        $mails = $rootMailbox->getMails();
         //print_r($mails);
 
 
         print_r(iterator_to_array($lists));
         foreach ($mails as $mail) {
             $mail->matchMailToMailinglists($lists);
-            print_r($mail);
+            //print_r($mail);
             $mail->cleanHeaders();
+
+            print_r($mail->myGenerateHeaders());
             print_r($mail);
         }
 

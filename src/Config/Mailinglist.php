@@ -7,13 +7,13 @@ use ezcMailAddress;
 class Mailinglist
 {
     public ezcMailAddress $address;
-    public String $folder;
+    public String $mailbox;
     public Int $grpid;
     private array $members;
     public function __construct($config)
     {
         $this->address = new ezcMailAddress($config['email'], $config['name']);
-        $this->folder = $config['folder'];
+        $this->mailbox = $config['mailbox'];
         $this->grpid = $config['grpId'];
 
         // TODO: Reading Members from Database with grpId
@@ -37,5 +37,14 @@ class Mailinglist
             }
         }
         return false;
+    }
+    public function jsonSerialize()
+    {
+        return [
+            'name' => $this->address->name,
+            'email' => $this->address->email,
+            'mailbox' => $this->mailbox,
+            'grpId' => $this->grpid
+        ];
     }
 }

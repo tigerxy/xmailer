@@ -53,7 +53,7 @@ class Imap extends ezcMailImapTransport
         $mails = $this->parseMailSet($set);
         array_map(
             function ($mail) {
-                $mail->folder = $this->selectedMailbox;
+                $mail->mailbox = $this->selectedMailbox;
             },
             $mails
         );
@@ -72,9 +72,9 @@ class Imap extends ezcMailImapTransport
         return $parser->parseMail($set);
     }
 
-    public function moveMessage($messageNr, $destFolder)
+    public function moveMessage($messageNr, $destMailbox)
     {
-        $this->copyMessages($messageNr, $destFolder);
+        $this->copyMessages($messageNr, $destMailbox);
         $this->delete($messageNr);
         $this->expunge();
     }

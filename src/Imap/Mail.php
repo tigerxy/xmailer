@@ -6,6 +6,7 @@ use Xmailer\Config\Mailinglist;
 use Xmailer\Config\Mailinglists;
 use ezcMail;
 use ezcMailAddress;
+use ezcMailTools;
 
 class Mail extends ezcMail
 {
@@ -25,10 +26,28 @@ class Mail extends ezcMail
     const UNRECENT = 'UNRECENT';
     const UNSEEN = 'UNSEEN';
 
-    public string $folder = '';
+    public string $mailbox = '';
     public int $messageNr = 0;
     public Mailinglists $assignedMailinglists;
 
+    public function __construct()
+    {
+        parent::__construct();
+        $this->appendExcludeHeaders([
+            'Authentication-Results',
+            'Delivered-To',
+            'Received-SPF',
+            'Received',
+            'User-Agent',
+            'X-bounce-key',
+            'X-HE-SMSGID',
+            'X-NC-CID',
+            'X-Original-To',
+            'X-Spam-Checker-Version',
+            'X-Spam-Level',
+            'X-Spam-Status',
+        ]);
+    }
     /**
      * @return array<ezcMailAddress>
      */
@@ -66,8 +85,63 @@ class Mail extends ezcMail
         $this->cc = array();
         $this->bcc = array();
 
-        $this->to = array_map(function (Mailinglist $list) {
+        foreach ($this->assignedMailinglists as $list) {
+            $this->addTo($list->address);
+        }
+        $this->updateHeaders();
+        /*$this->to = array_map(function (Mailinglist $list) {
             return $list->address;
-        }, iterator_to_array($this->assignedMailinglists));
+        }, iterator_to_array($this->assignedMailinglists));*/
+    }
+
+    private function updateHeaders(): void
+    {
+        // foreach ([
+        //     'to' => $this->to,
+        //     'cc' => $this->cc,
+        //     'bcc' => $this->bcc,
+        // ] as $key => $value) {
+        //     /*$this->setHeader($key, array_reduce((array) $value, function (?string $str, ezcMailAddress $mail) {
+        //         return $str ? ',' . $mail->__toString() : $mail->__toString();
+        //     }));*/
+        //     var_dump(ezcMailTools::composeEmailAddresses((array) $value));
+        // }
+        $this->setHeader("To", ezcMailTools::composeEmailAddresses((array) $this->to));
+        $this->setHeader("Cc", '');
+        $this->setHeader("Bcc", '');
+    }
+
+    public function getToString(): string
+    {
+        return (string) ezcMailTools::composeEmailAddresses((array) $this->to);
+    }
+
+    public function myGenerateHeaders()
+    {
+        // set our headers first.
+        //$this->to = new ezcMailAddress()'$this->getToString()';
+        //var_dump($this->headers["To"]);
+
+        /*$this->setHeader('Subject', $this->subject, $this->subjectCharset);
+
+        $this->setHeader('MIME-Version', '1.0');
+        $this->setHeader('User-Agent', 'Apache Zeta Components');
+        $this->setHeader('Date', date('r'));
+        $idhost = $this->from != null && $this->from->email != '' ? $this->from->email : 'localhost';
+        if (is_null($this->messageId)) {
+            $this->setHeader('Message-Id', '<' . ezcMailTools::generateMessageId($idhost) . '>');
+        } else {
+            $this->setHeader('Message-Id', $this->messageID);
+        }
+
+        // if we have a body part, include the headers of the body
+        if (is_subclass_of($this->body, "ezcMailPart")) {
+            return parent::generateHeaders() . $this->body->generateHeaders();
+        }*/
+        //parent::headers = $this->headers;
+        foreach ($this->headers as $key => $value) {
+            parent::setHeader($key, $value);
+        }
+        return parent::generateHeaders();
     }
 }

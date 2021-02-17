@@ -24,8 +24,10 @@ class Settings extends DashboardPageController
 			"tls" => array("desc" => "TLS", "port" => 465)
 		)
 	);*/
+
 	public function view()
 	{
+		$this->requireAsset('javascript', 'xmailer-settings-form');
 		$config = new Config();
 		/*$this->set('config', Config::get('xmailer'));
 		$this->set('imap', Config::get('xmailer.imap'));
