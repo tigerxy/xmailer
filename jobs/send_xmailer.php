@@ -4,6 +4,7 @@ namespace Concrete\Package\Xmailer\Job;
 
 use Concrete\Core\Job\Job;
 use Xmailer\Imap;
+use Xmailer\Imap\Mailbox;
 use Xmailer\Config\Config;
 
 class SendXmailer extends Job
@@ -22,7 +23,9 @@ class SendXmailer extends Job
     {
         $config = new Config();
 
-        $conn = new Imap('Queue');
-        $conn->sendFirst($config->getAmountSendPerRun());
+        $conn = new Imap();
+        $rootMailbox = new Mailbox($conn, 'INBOX');
+        $queueMailbox = new Mailbox($conn, 'Queue', $rootMailbox);
+        $queueMailbox->sendFirst($config->getAmountSendPerRun());
     }
 }

@@ -9,7 +9,10 @@ class Mailinglist
     public ezcMailAddress $address;
     public String $mailbox;
     public Int $grpid;
-    private array $members;
+    /**
+     * @var array(ezcMailAddress)
+     */
+    private $members;
     public function __construct($config)
     {
         $this->address = new ezcMailAddress($config['email'], $config['name']);
@@ -18,10 +21,15 @@ class Mailinglist
 
         // TODO: Reading Members from Database with grpId
         $this->members = [
-            new ezcMailAddress("rolandgreim60@googlemail.com", "Roland Greim")
+            new ezcMailAddress("roland1@fakemail.com", "Roland Greim"),
+            new ezcMailAddress("roland2@fakemail.com", "Roland Greim"),
+            new ezcMailAddress("roland3@fakemail.com", "Roland Greim"),
         ];
     }
-    public function getMemberEmailAdresses(): array
+    /**
+     * @return array(ezcMailAddress)
+     */
+    public function getMemberEmailAdresses()
     {
         return $this->members;
     }

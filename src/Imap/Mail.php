@@ -7,6 +7,8 @@ use Xmailer\Config\Mailinglists;
 use ezcMail;
 use ezcMailAddress;
 use ezcMailTools;
+// FIXME: Replace these:
+use Concrete\Core\Support\Facade\Config;
 
 class Mail extends ezcMail
 {
@@ -26,7 +28,7 @@ class Mail extends ezcMail
     const UNRECENT = 'UNRECENT';
     const UNSEEN = 'UNSEEN';
 
-    public string $mailbox = '';
+    public ?Mailbox $mailbox = null;
     public int $messageNr = 0;
     public Mailinglists $assignedMailinglists;
 
@@ -56,14 +58,14 @@ class Mail extends ezcMail
         return array_merge($this->to, $this->cc, $this->bcc);
     }
 
-    public function matchMailToMailinglists(Mailinglists $lists): void
+    public function findReceivingMailinglists(Mailinglists $lists): Mail
     {
         $recvs = $this->getAllRecivers();
-        $listsArray = iterator_to_array($lists);
-        $matches = $this->array_inner_join($listsArray, $recvs, function (Mailinglist $list, ezcMailAddress $recv) {
+        $matches = $this->array_inner_join($lists->toArray(), $recvs, function (Mailinglist $list, ezcMailAddress $recv) {
             return $recv->email == $list->address->email;
         });
         $this->assignedMailinglists = new Mailinglists($matches);
+        return $this;
     }
 
     private function array_inner_join(array $a, array $b, callable $func): array
@@ -79,11 +81,24 @@ class Mail extends ezcMail
         return $ret;
     }
 
-    public function cleanHeaders(): void
+    public function isSenderMemberOfMailinglist(): Mail
+    {
+        $this->assignedMailinglists = new Mailinglists(array_filter($this->assignedMailinglists->toArray(), function (Mailinglist $list) {
+            return $list->isMemberOfList($this->from);
+        }));
+        return $this;
+    }
+
+    public function cleanHeaders(): Mail
     {
         $this->to = array();
         $this->cc = array();
         $this->bcc = array();
+
+        $this->appendExcludeHeaders([
+            'bcc',
+            'cc',
+        ]);
 
         foreach ($this->assignedMailinglists as $list) {
             $this->addTo($list->address);
@@ -92,20 +107,27 @@ class Mail extends ezcMail
         /*$this->to = array_map(function (Mailinglist $list) {
             return $list->address;
         }, iterator_to_array($this->assignedMailinglists));*/
+        return $this;
+    }
+
+    public function appendForEachMailinglistmemberTo(Mailbox $mbox)
+    {
+        $backup_to = $this->getTo();
+        $backup_reply_to = $this->getReplyTo();
+        foreach ($this->assignedMailinglists as $list) {
+            $this->setReplyTo($this->getFrom());
+            $this->setFrom($list->address);
+            foreach ($list->getMemberEmailAdresses() as $reciver) {
+                $this->setTo([$reciver]);
+                $mbox->appendMail($this);
+            }
+        }
+        $this->setTo($backup_to);
+        return $this;
     }
 
     private function updateHeaders(): void
     {
-        // foreach ([
-        //     'to' => $this->to,
-        //     'cc' => $this->cc,
-        //     'bcc' => $this->bcc,
-        // ] as $key => $value) {
-        //     /*$this->setHeader($key, array_reduce((array) $value, function (?string $str, ezcMailAddress $mail) {
-        //         return $str ? ',' . $mail->__toString() : $mail->__toString();
-        //     }));*/
-        //     var_dump(ezcMailTools::composeEmailAddresses((array) $value));
-        // }
         $this->setHeader("To", ezcMailTools::composeEmailAddresses((array) $this->to));
         $this->setHeader("Cc", '');
         $this->setHeader("Bcc", '');
@@ -116,32 +138,57 @@ class Mail extends ezcMail
         return (string) ezcMailTools::composeEmailAddresses((array) $this->to);
     }
 
-    public function myGenerateHeaders()
+    public function moveTo(Mailbox $mbox): Mail
     {
-        // set our headers first.
-        //$this->to = new ezcMailAddress()'$this->getToString()';
-        //var_dump($this->headers["To"]);
+        $this->mailbox->moveMail($this, $mbox);
+        return $this;
+    }
 
-        /*$this->setHeader('Subject', $this->subject, $this->subjectCharset);
-
-        $this->setHeader('MIME-Version', '1.0');
-        $this->setHeader('User-Agent', 'Apache Zeta Components');
-        $this->setHeader('Date', date('r'));
-        $idhost = $this->from != null && $this->from->email != '' ? $this->from->email : 'localhost';
-        if (is_null($this->messageId)) {
-            $this->setHeader('Message-Id', '<' . ezcMailTools::generateMessageId($idhost) . '>');
-        } else {
-            $this->setHeader('Message-Id', $this->messageID);
+    public function addPagenameToSubject(): Mail
+    {
+        if (Config::get('xmailer.addpagename')) {
+            $this->subject = '[' . Config::get('concrete.site') . '] ' . $this->subject;
         }
+        return $this;
+    }
 
-        // if we have a body part, include the headers of the body
-        if (is_subclass_of($this->body, "ezcMailPart")) {
-            return parent::generateHeaders() . $this->body->generateHeaders();
-        }*/
-        //parent::headers = $this->headers;
-        foreach ($this->headers as $key => $value) {
-            parent::setHeader($key, $value);
+    /**
+     * @return array(ezcMailAddress)
+     */
+    private function getTo()
+    {
+        return $this->to;
+    }
+
+    /**
+     * @param array(ezcMailAddress) $address
+     */
+    private function setTo($address): void
+    {
+        $this->to = $address;
+    }
+
+    private function getReplyTo(): ezcMailAddress
+    {
+        return new ezcMailAddress($this->getHeader('reply-to'));
+    }
+
+    private function setReplyTo(ezcMailAddress $address = null): void
+    {
+        $replyto = '';
+        if ($address != null) {
+            $replyto = $address->__toString();
         }
-        return parent::generateHeaders();
+        $this->setHeader('reply-to', $replyto);
+    }
+
+    private function getFrom(): ezcMailAddress
+    {
+        return $this->from;
+    }
+
+    private function setFrom(ezcMailAddress $address): void
+    {
+        $this->from = $address;
     }
 }

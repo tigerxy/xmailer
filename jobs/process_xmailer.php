@@ -30,36 +30,23 @@ class ProcessXmailer extends Job
 
     public function run()
     {
-        echo '<pre>';
         $lists = new Mailinglists();
         $lists->readFromConfig();
         $conn = new Imap();
-        $rootMailbox = new Mailbox($conn, 'Inbox');
+        $rootMailbox = new Mailbox($conn, 'INBOX');
+        $processMailbox = new Mailbox($conn, 'Process', $rootMailbox);
+        $finishMailbox = new Mailbox($conn, 'Finish', $processMailbox);
+        $queueMailbox = new Mailbox($conn, 'Queue', $rootMailbox);
 
         $mails = $rootMailbox->getMails();
-        //print_r($mails);
 
-
-        print_r(iterator_to_array($lists));
         foreach ($mails as $mail) {
-            $mail->matchMailToMailinglists($lists);
-            //print_r($mail);
-            $mail->cleanHeaders();
-
-            print_r($mail->myGenerateHeaders());
-            print_r($mail);
+            $mail->findReceivingMailinglists($lists)
+                ->isSenderMemberOfMailinglist()
+                ->cleanHeaders()
+                ->addPagenameToSubject()
+                ->appendForEachMailinglistmemberTo($queueMailbox)
+                ->moveTo($finishMailbox);
         }
-
-        echo '</pre>';
-        die();
-    }
-
-
-    private function formatSubject(Mail $mail): Mail
-    {
-        if (Config::get('xmailer.addpagename')) {
-            $mail->subject = '[' . Config::get('concrete.site') . '] ' . $mail->subject;
-        }
-        return $mail;
     }
 }

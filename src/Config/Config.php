@@ -75,7 +75,7 @@ class Config extends AbstractConfig implements JsonSerializable
             'allow' => $this->getAllow(),
             'lists' => array_map(function ($list) {
                 return $list->jsonSerialize();
-            }, iterator_to_array($this->mailinglists))
+            }, $this->mailinglists->toArray())
         ];
     }
 }

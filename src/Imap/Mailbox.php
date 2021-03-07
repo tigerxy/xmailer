@@ -26,10 +26,12 @@ class Mailbox
         $this->imap = $imap;
         $this->mailbox = $mailbox;
         $this->parentMailbox = $parentMailbox;
+        $this->imap->createMailboxIfNotExist($this->getMailboxPath());
     }
 
     public function sendFirst($number)
     {
+        $this->getInboxMailbox()->selectMailbox();
         $smtp = new Smtp();
         $unansweredMsgNrs = $this->imap->searchMailbox(Mail::UNFLAGGED)->getMessageNumbers();
         // Get maximal $number Message Ids
@@ -58,23 +60,19 @@ class Mailbox
     public function getMails()
     {
         $this->selectMailbox();
-        return $this->imap->getMails();
+        return $this->imap->getMails($this);
     }
 
-    private function moveMail(Mail $mail, Mailbox $mailbox)
+    public function moveMail(Mail $mail, Mailbox $mailbox)
     {
+        $this->selectMailbox();
         $this->imap->moveMessage($mail->messageNr, $mailbox->getMailboxPath());
     }
 
     private function selectMailbox(): void
     {
-        $this->imap->selectMailbox($this->getCurrentMailbox());
+        $this->imap->selectMailbox($this->getMailboxPath());
         $this->imap->createMailboxIfNotExist();
-    }
-
-    private function getCurrentMailbox(): string
-    {
-        return $this->getMailboxPath() . $this->mailbox;
     }
 
     private function getInboxMailbox(): Mailbox
@@ -94,10 +92,14 @@ class Mailbox
 
     private function getMailboxPath(): string
     {
-        if ($this->parentMailbox != null) {
-            return $this->parentMailbox->getMailboxPath() . '\\';
-        } else {
-            return '';
-        }
+        $parentPath = $this->parentMailbox ? $this->parentMailbox->getMailboxPath() . "/" : '';
+        return $parentPath . $this->mailbox;
+    }
+
+    public function appendMail(Mail $mail)
+    {
+        $this->selectMailbox();
+        $mbox = $this->getInboxMailbox()->getMailboxPath();
+        $this->imap->append($mbox, $mail->generate());
     }
 }

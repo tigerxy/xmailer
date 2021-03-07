@@ -4,6 +4,7 @@ namespace Xmailer;
 
 use Xmailer\Config\Imap as ConfigImap;
 use Xmailer\Imap\Mail;
+use Xmailer\Imap\Mailbox;
 use ezcMailImapTransport;
 use ezcMailImapTransportOptions;
 use ezcMailParser;
@@ -47,16 +48,15 @@ class Imap extends ezcMailImapTransport
      * @return array<Mail>
      */
 
-    public function getMails(): array
+    public function getMails(Mailbox $mbox): array
     {
         $set = $this->fetchAll();
         $mails = $this->parseMailSet($set);
-        array_map(
-            function ($mail) {
-                $mail->mailbox = $this->selectedMailbox;
-            },
-            $mails
-        );
+        $numbers = $set->getMessageNumbers();
+        foreach (array_combine($numbers, $mails) as $number => $mail) {
+            $mail->mailbox = $mbox;
+            $mail->messageNr = $number;
+        }
         return $mails;
     }
 
@@ -89,12 +89,15 @@ class Imap extends ezcMailImapTransport
         $this->availableMailboxes = $this->listMailboxes();
     }
 
-    public function createMailboxIfNotExist()
+    public function createMailboxIfNotExist($mbox = null)
     {
+        if (!$mbox) {
+            $mbox = $this->selectedMailbox;
+        }
         $this->updateMailboxes();
         // Check if mailboxes exist otherwise create it
-        if ($this->selectedMailbox != "Inbox" && !in_array($this->selectedMailbox, $this->availableMailboxes)) {
-            $this->createMailbox($this->selectedMailbox);
+        if ($mbox != "Inbox" && !in_array($mbox, $this->availableMailboxes)) {
+            $this->createMailbox($mbox);
         }
     }
 
