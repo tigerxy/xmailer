@@ -5,7 +5,7 @@ namespace Xmailer\Config;
 use Xmailer\Config\Ssl\Options;
 use Xmailer\Config\Ssl\Option;
 
-class Smtp extends AbstractServer
+class SmtpConfig extends AbstractServer
 {
     public function __construct()
     {

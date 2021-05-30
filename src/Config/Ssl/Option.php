@@ -2,7 +2,7 @@
 
 namespace Xmailer\Config\Ssl;
 
-use Xmailer\Config\AbstractServer as AbstractServer;
+use Xmailer\Config\AbstractServer;
 
 class Option
 {

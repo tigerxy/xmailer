@@ -2,7 +2,7 @@
 
 namespace Xmailer\Config;
 
-use \JsonSerializable;
+use JsonSerializable;
 /*
 use Xmailer\Config\Imap;
 use Xmailer\Config\Smtp;
@@ -11,15 +11,15 @@ use Xmailer\Config\AbstractConfig as AbstractConfig;
 
 class Config extends AbstractConfig implements JsonSerializable
 {
-    public Imap $imap;
-    public Smtp $smtp;
-    public Mailinglists $mailinglists;
+    public ImapConfig $imap;
+    public SmtpConfig $smtp;
+    public MailingLists $mailingLists;
     public function __construct()
     {
-        $this->imap = new Imap();
-        $this->smtp = new Smtp();
-        $this->mailinglists = new Mailinglists();
-        $this->mailinglists->readFromConfig();
+        $this->imap = new ImapConfig();
+        $this->smtp = new SmtpConfig();
+        $this->mailingLists = new MailingLists();
+        $this->mailingLists->readFromConfig();
     }
     public function getSpam(): Bool
     {
@@ -27,7 +27,7 @@ class Config extends AbstractConfig implements JsonSerializable
     }
     public function getReplyTo(): Bool
     {
-        return $this->getVal('replyto');
+        return $this->getVal('replyTo');
     }
     public function getAllow(): array
     {
@@ -35,7 +35,7 @@ class Config extends AbstractConfig implements JsonSerializable
     }
     public function getAddPageName(): Bool
     {
-        return $this->getVal('addpagename');
+        return $this->getVal('addPageName');
     }
     public function getAmountSendPerRun(): Int
     {
@@ -47,7 +47,7 @@ class Config extends AbstractConfig implements JsonSerializable
     }
     public function setReplyTo(Bool $val)
     {
-        $this->setVal('replyto', $val);
+        $this->setVal('replyTo', $val);
     }
     public function setAllow(Bool $val)
     {
@@ -55,27 +55,27 @@ class Config extends AbstractConfig implements JsonSerializable
     }
     public function setAddPageName(Bool $val)
     {
-        $this->setVal('addpagename', $val);
+        $this->setVal('addPageName', $val);
     }
-    public function allSslOptionsToJson()
+    public function allSslOptionsToJson(): array
     {
         return [
             "imap" => $this->imap->ssl_options->toArray(),
             "smtp" => $this->smtp->ssl_options->toArray(),
         ];
     }
-    public function jsonSerialize($hidePassword = True)
+    public function jsonSerialize($hidePassword = True): array
     {
         return [
             'spam' => $this->getSpam(),
-            'replyto' => $this->getReplyTo(),
-            'addpagename' => $this->getAddPageName(),
+            'replyTo' => $this->getReplyTo(),
+            'addPageName' => $this->getAddPageName(),
             'imap' => $this->imap->jsonSerialize($hidePassword),
             'smtp' => $this->smtp->jsonSerialize($hidePassword),
             'allow' => $this->getAllow(),
             'lists' => array_map(function ($list) {
                 return $list->jsonSerialize();
-            }, $this->mailinglists->toArray())
+            }, $this->mailingLists->toArray())
         ];
     }
 }

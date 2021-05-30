@@ -3,36 +3,31 @@
 namespace Xmailer\Config;
 
 use ArrayIterator;
-use Concrete\Core\Support\Facade\Config as C5Config;
 
-class Mailinglists extends ArrayIterator
+class MailingLists extends ArrayIterator
 {
     public function readFromConfig(): void
     {
         if ($this->empty()) {
-            $config = C5Config::get('xmailer.lists');
+            $config = Config::getConfig()->get('xmailer.lists');
             foreach ($config as $list) {
-                $this->append(new Mailinglist($list));
+                $this->append(new MailingList($list));
             }
         }
     }
-    public function current(): Mailinglist
+    public function current(): MailingList
     {
         return parent::current();
     }
-    public function offsetGet($offset): Mailinglist
+    public function offsetGet($offset): MailingList
     {
         return parent::offsetGet($offset);
     }
-    // public function append(Mailinglist $value): void
-    // {
-    //     parent::append($value);
-    // }
     public function empty(): bool
     {
         return $this->count() == 0;
     }
-    public function first(): Mailinglist
+    public function first(): MailingList
     {
         return $this[0];
     }

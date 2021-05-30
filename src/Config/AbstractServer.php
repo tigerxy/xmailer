@@ -3,7 +3,7 @@
 namespace Xmailer\Config;
 
 use Xmailer\Config\Ssl\Options;
-use \JsonSerializable;
+use JsonSerializable;
 
 abstract class AbstractServer extends AbstractConfig implements JsonSerializable
 {
@@ -55,7 +55,7 @@ abstract class AbstractServer extends AbstractConfig implements JsonSerializable
     {
         $this->setVal('ssl', $val);
     }
-    public function jsonSerialize($hidePassword = True)
+    public function jsonSerialize($hidePassword = True): array
     {
         return [
             'host' => $this->getHost(),

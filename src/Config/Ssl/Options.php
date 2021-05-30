@@ -2,7 +2,6 @@
 
 namespace Xmailer\Config\Ssl;
 
-use Xmailer\Config\AbstractServer as AbstractServer;
 use IteratorIterator;
 use ArrayIterator;
 

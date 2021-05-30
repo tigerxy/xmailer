@@ -2,7 +2,12 @@
 
 namespace Xmailer;
 
-use Xmailer\Config\Imap as ConfigImap;
+use Exception;
+use ezcBaseFileNotFoundException;
+use ezcBasePropertyNotFoundException;
+use ezcBaseValueException;
+use ezcMailTransportException;
+use Xmailer\Config\ImapConfig;
 use Xmailer\Imap\Mail;
 use Xmailer\Imap\Mailbox;
 use ezcMailImapTransport;
@@ -18,26 +23,17 @@ class Imap extends ezcMailImapTransport
 
     public function __construct()
     {
-        $this->imapConnect();
-    }
-
-    private function imapConnect()
-    {
-        $config = new ConfigImap();
-        // Create a new IMAP transport with an SSL connection (default port is 993,
-        // you can specify a different one using the second parameter of the constructor).
+        $config = new ImapConfig();
         $this->imap_conn_options = new ezcMailImapTransportOptions();
-        //$imap_options->uidReferencing = false;
         $this->imap_conn_options->ssl = $config->useSSL();
+        $this->imap_conn_options->uidReferencing = true;
 
-        // Create a new IMAP transport object by specifying the server name
         parent::__construct(
             $config->getHost(),
             $config->getPort(),
             $this->imap_conn_options
         );
 
-        // Authenticate to the IMAP server
         $this->authenticate(
             $config->getUser(),
             $config->getPass()
@@ -45,13 +41,23 @@ class Imap extends ezcMailImapTransport
     }
 
     /**
-     * @return array<Mail>
+     * @param Mailbox $mbox
+     * @return Mail[]
+     * @throws ConnectionError
+     * @throws ParserError
      */
-
     public function getMails(Mailbox $mbox): array
     {
-        $set = $this->fetchAll();
-        $mails = $this->parseMailSet($set);
+        try {
+            $set = $this->fetchAll();
+        } catch (ezcMailTransportException $e) {
+            throw new ConnectionError("Could not fetch mails of {$mbox->getMailboxPath()} from server");
+        }
+        try {
+            $mails = $this->parseMailSet($set);
+        } catch (ParserError $e) {
+            throw new ParserError("Could not parse mails of {$mbox->getMailboxPath()}");
+        }
         $numbers = $set->getMessageNumbers();
         foreach (array_combine($numbers, $mails) as $number => $mail) {
             $mail->mailbox = $mbox;
@@ -61,22 +67,44 @@ class Imap extends ezcMailImapTransport
     }
 
     /**
-     * @return array<Mail>
+     * @param ezcMailParserSet $set
+     * @return Mail[]
+     * @throws ConnectionError
+     * @throws ParserError
      */
-
     private function parseMailSet(ezcMailParserSet $set): array
     {
         $options = new ezcMailParserOptions();
         $options->mailClass = Mail::class;
-        $parser = new ezcMailParser($options);
-        return $parser->parseMail($set);
+        try {
+            $parser = new ezcMailParser($options);
+        } catch (ezcBasePropertyNotFoundException | ezcBaseValueException $e) {
+            throw new ConnectionError("Could not create parser");
+        }
+        try {
+            return $parser->parseMail($set);
+        } catch (ezcBaseFileNotFoundException $e) {
+            throw new ParserError("Could not parse mail");
+        }
     }
 
+    /**
+     * @param $messageNr
+     * @param $destMailbox
+     * @throws ConnectionError
+     */
     public function moveMessage($messageNr, $destMailbox)
     {
-        $this->copyMessages($messageNr, $destMailbox);
-        $this->delete($messageNr);
-        $this->expunge();
+        try {
+            $this->copyMessages($messageNr, $destMailbox);
+        } catch (ezcMailTransportException $e) {
+            throw new ConnectionError("Could not not copy message ($messageNr) to $destMailbox");
+        }
+        try {
+            $this->delete($messageNr);
+        } catch (ezcMailTransportException $e) {
+            throw new ConnectionError("Could not flag message ($messageNr) as DELETED");
+        }
     }
 
     private function turnOnUidReferencing($on)
@@ -89,6 +117,9 @@ class Imap extends ezcMailImapTransport
         $this->availableMailboxes = $this->listMailboxes();
     }
 
+    /**
+     * @throws ConnectionError
+     */
     public function createMailboxIfNotExist($mbox = null)
     {
         if (!$mbox) {
@@ -97,23 +128,23 @@ class Imap extends ezcMailImapTransport
         $this->updateMailboxes();
         // Check if mailboxes exist otherwise create it
         if ($mbox != "Inbox" && !in_array($mbox, $this->availableMailboxes)) {
-            $this->createMailbox($mbox);
+            try {
+                $this->createMailbox($mbox);
+            } catch (ezcMailTransportException $e) {
+                throw new ConnectionError("Could not create Mailbox $mbox");
+            }
         }
     }
 
-    private function isEmpty()
+    /**
+     * @throws ConnectionError
+     */
+    public function expunge()
     {
-        return !$this->isNotEmpty();
-    }
-
-    private function isNotEmpty()
-    {
-        // ignore Mails with DELETED tag
-        return $this->count() > 0;
-    }
-
-    private function count()
-    {
-        return $this->countByFlag(Mail::UNDELETED);
+        try {
+            parent::expunge();
+        } catch (ezcMailTransportException $e) {
+            throw new ConnectionError("Could not clean up and delete mails flagged as DELETED");
+        }
     }
 }

@@ -2,19 +2,25 @@
 
 namespace Xmailer\Config;
 
-// FIXME: Replace these:
-use Concrete\Core\Support\Facade\Config as C5Config;
+use Concrete\Core\Support\Facade\Application;
 
 abstract class AbstractConfig
 {
     protected String $path = 'xmailer';
     //public function __construct() {}
+    public static function getConfig() {
+        $app = Application::getFacadeApplication();
+        return $app->make('config');
+    }
+
     protected function getVal(String $name)
     {
-        return C5Config::get($this->path . '.' . $name);
+        $config = self::getConfig();
+        return $config->get($this->path . '.' . $name);
     }
-    protected function setVal(String $name, Mixed $val)
+    protected function setVal(String $name, $val)
     {
-        return C5Config::save($this->path . '.' . $name, $val);
+        $config = self::getConfig();
+        $config->save($this->path . '.' . $name, $val);
     }
 }

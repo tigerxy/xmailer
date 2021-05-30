@@ -5,7 +5,7 @@ namespace Concrete\Package\Xmailer\Controller\SinglePage\Dashboard\Xmailer\Mailb
 use Concrete\Core\Page\Controller\DashboardPageController;
 use Concrete\Core\User\Group\GroupList;
 
-use Xmailer\Config\Mailinglist;
+use Xmailer\Config\MailingList;
 
 // FIXME: Replace these:
 use Concrete\Core\Support\Facade\Database;

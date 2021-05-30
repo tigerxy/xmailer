@@ -2,7 +2,7 @@
 
 namespace Xmailer;
 
-use Xmailer\Config\Smtp as SmtpConfig;
+use Xmailer\Config\SmtpConfig;
 use ezcMailSmtpTransport;
 use ezcMailSmtpTransportOptions;
 

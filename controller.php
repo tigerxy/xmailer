@@ -4,28 +4,27 @@ namespace Concrete\Package\Xmailer;
 
 defined('C5_EXECUTE') or die(_("Access Denied."));
 
-use \Concrete\Core\Package\Package;
-use \Concrete\Core\Page\Single as SinglePage;
-use \Concrete\Core\Job\Job as Job;
-//use \Concrete\Core\Mail\Importer\MailImporter as MailImporter;
-//use \Concrete\Core\Block\BlockType\BlockType;
+use Concrete\Core\Asset\AssetList;
+use Concrete\Core\Package\Package;
+use Concrete\Core\Page\Single as SinglePage;
+use Concrete\Core\Job\Job as Job;
 
 class Controller extends Package
 {
 
-    protected $pkgHandle = 'xmailer';
-    protected $appVersionRequired = '8.5.4';
-    protected $pkgVersion = '2.2';
-    protected $pkgAutoloaderRegistries = array(
+    protected string $pkgHandle = 'xmailer';
+    protected string $appVersionRequired = '8.5.4';
+    protected string $pkgVersion = '2.2';
+    protected array $pkgAutoloaderRegistries = array(
         'src/' => '\Xmailer'
     );
 
-    public function getPackageDescription()
+    public function getPackageDescription(): string
     {
-        return t('xMailer to send emails to usergroupes and users.');
+        return t('xMailer to send emails to groups and users.');
     }
 
-    public function getPackageName()
+    public function getPackageName(): string
     {
         return t('xMailer');
     }
@@ -69,7 +68,7 @@ class Controller extends Package
     public function on_start()
     {
         $this->setupAutoloader();
-        $al = \Concrete\Core\Asset\AssetList::getInstance();
+        $al = AssetList::getInstance();
         $al->register(
             'javascript',
             'xmailer-settings-form',

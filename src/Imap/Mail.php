@@ -2,13 +2,17 @@
 
 namespace Xmailer\Imap;
 
-use Xmailer\Config\Mailinglist;
-use Xmailer\Config\Mailinglists;
+use ezcMailPartWalkContext;
+use ezcMailText;
+use Xmailer\Config\Config;
+use Xmailer\Config\MailingList;
+use Xmailer\Config\MailingLists;
 use ezcMail;
 use ezcMailAddress;
 use ezcMailTools;
-// FIXME: Replace these:
-use Concrete\Core\Support\Facade\Config;
+use Xmailer\ConfigError;
+use Xmailer\ConnectionError;
+
 
 class Mail extends ezcMail
 {
@@ -30,7 +34,7 @@ class Mail extends ezcMail
 
     public ?Mailbox $mailbox = null;
     public int $messageNr = 0;
-    public Mailinglists $assignedMailinglists;
+    public MailingLists $assignedMailingLists;
 
     public function __construct()
     {
@@ -50,21 +54,25 @@ class Mail extends ezcMail
             'X-Spam-Status',
         ]);
     }
-    /**
-     * @return array<ezcMailAddress>
-     */
-    public function getAllRecivers(): array
+
+    public function getAllReceivers(): array
     {
         return array_merge($this->to, $this->cc, $this->bcc);
     }
 
-    public function findReceivingMailinglists(Mailinglists $lists): Mail
+    public function setReceivingMailingList(MailingList $list): Mail
     {
-        $recvs = $this->getAllRecivers();
-        $matches = $this->array_inner_join($lists->toArray(), $recvs, function (Mailinglist $list, ezcMailAddress $recv) {
+        $this->assignedMailingLists = new MailingLists([$list]);
+        return $this;
+    }
+
+    public function findReceivingMailingLists(MailingLists $lists): Mail
+    {
+        $receivers = $this->getAllReceivers();
+        $matches = $this->array_inner_join($lists->toArray(), $receivers, function (MailingList $list, ezcMailAddress $recv) {
             return $recv->email == $list->address->email;
         });
-        $this->assignedMailinglists = new Mailinglists($matches);
+        $this->assignedMailingLists = new MailingLists($matches);
         return $this;
     }
 
@@ -81,9 +89,13 @@ class Mail extends ezcMail
         return $ret;
     }
 
-    public function isSenderMemberOfMailinglist(): Mail
+    /**
+     * @throws ConfigError
+     */
+    public function isSenderMemberOrWhitelisted(): Mail
     {
-        $this->assignedMailinglists = new Mailinglists(array_filter($this->assignedMailinglists->toArray(), function (Mailinglist $list) {
+        // TODO: Ignore if user is whitelisted
+        $this->assignedMailingLists = new MailingLists(array_filter($this->assignedMailingLists->toArray(), function (MailingList $list) {
             return $list->isMemberOfList($this->from);
         }));
         return $this;
@@ -100,26 +112,26 @@ class Mail extends ezcMail
             'cc',
         ]);
 
-        foreach ($this->assignedMailinglists as $list) {
+        foreach ($this->assignedMailingLists as $list) {
             $this->addTo($list->address);
         }
         $this->updateHeaders();
-        /*$this->to = array_map(function (Mailinglist $list) {
-            return $list->address;
-        }, iterator_to_array($this->assignedMailinglists));*/
         return $this;
     }
 
-    public function appendForEachMailinglistmemberTo(Mailbox $mbox)
+    /**
+     * @throws ConfigError
+     * @throws ConnectionError
+     */
+    public function appendForEachMailingListMemberTo(Mailbox $mbox): Mail
     {
         $backup_to = $this->getTo();
-        $backup_reply_to = $this->getReplyTo();
-        foreach ($this->assignedMailinglists as $list) {
+        foreach ($this->assignedMailingLists as $list) {
             $this->setReplyTo($this->getFrom());
             $this->setFrom($list->address);
-            foreach ($list->getMemberEmailAdresses() as $reciver) {
-                $this->setTo([$reciver]);
-                $mbox->appendMail($this);
+            foreach ($list->getEmailAddressesOfMembers() as $receiver) {
+                $this->setTo([$receiver]);
+                $mbox->queueMailForSending($this);
             }
         }
         $this->setTo($backup_to);
@@ -128,58 +140,85 @@ class Mail extends ezcMail
 
     private function updateHeaders(): void
     {
-        $this->setHeader("To", ezcMailTools::composeEmailAddresses((array) $this->to));
+        $this->setHeader("To", ezcMailTools::composeEmailAddresses($this->to));
         $this->setHeader("Cc", '');
         $this->setHeader("Bcc", '');
     }
 
     public function getToString(): string
     {
-        return (string) ezcMailTools::composeEmailAddresses((array) $this->to);
+        return ezcMailTools::composeEmailAddresses($this->to);
     }
 
+    /**
+     * @throws ConnectionError
+     */
+    public function moveToFinishElseSpam(Mailbox $finish, Mailbox $spam): Mail
+    {
+        if ($this->assignedMailingLists->empty()) {
+            return $this->moveTo($spam);
+        } else {
+            return $this->moveTo($finish);
+        }
+    }
+
+    /**
+     * @throws ConnectionError
+     */
     public function moveTo(Mailbox $mbox): Mail
     {
         $this->mailbox->moveMail($this, $mbox);
         return $this;
     }
 
-    public function addPagenameToSubject(): Mail
+    public function addPageNameToSubject(): Mail
     {
-        if (Config::get('xmailer.addpagename')) {
-            $this->subject = '[' . Config::get('concrete.site') . '] ' . $this->subject;
+        $config = new Config();
+        if ($config->getAddPageName()) {
+            $pageName = Config::getConfig()->get('concrete.site');
+            $this->subject = '[' . $pageName . '] ' . $this->subject;
         }
         return $this;
     }
 
-    /**
-     * @return array(ezcMailAddress)
-     */
-    private function getTo()
+    public function addFooter(): Mail
+    {
+        $context = new ezcMailPartWalkContext(function (ezcMailPartWalkContext $context, ezcMailText $mailPart) {
+            if ($mailPart->subType == "html") {
+                $mailPart->text .= "<br/><br/>" . Config::getConfig()->get('xmailer.footer.html');
+            }
+            if ($mailPart->subType == "plain") {
+                $mailPart->text .= PHP_EOL . PHP_EOL . Config::getConfig()->get('xmailer.footer.plain');
+            }
+        });
+        $this->walkParts($context, $this);
+        return $this;
+    }
+
+    public function debug(string $msg): Mail
+    {
+        echo '\n\n' . $msg;
+        var_dump($this);
+        return $this;
+    }
+
+    private function getTo(): array
     {
         return $this->to;
     }
 
-    /**
-     * @param array(ezcMailAddress) $address
-     */
     private function setTo($address): void
     {
         $this->to = $address;
     }
 
-    private function getReplyTo(): ezcMailAddress
-    {
-        return new ezcMailAddress($this->getHeader('reply-to'));
-    }
-
     private function setReplyTo(ezcMailAddress $address = null): void
     {
-        $replyto = '';
+        $replyTo = '';
         if ($address != null) {
-            $replyto = $address->__toString();
+            $replyTo = $address->__toString();
         }
-        $this->setHeader('reply-to', $replyto);
+        $this->setHeader('reply-to', $replyTo);
     }
 
     private function getFrom(): ezcMailAddress
