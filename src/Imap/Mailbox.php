@@ -62,6 +62,11 @@ class Mailbox
             }
             foreach ($mails as $mail) {
                 // Use the SMTP transport to send the created mail object
+                $mail->appendExcludeHeaders([
+                    'Return-Path',
+                    'Content-Type',
+                    'Content-Transfer-Encoding',
+                ]);
                 try {
                     $smtp->send($mail);
                 } catch (ezcMailTransportException $e) {

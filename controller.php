@@ -12,10 +12,10 @@ use Concrete\Core\Job\Job as Job;
 class Controller extends Package
 {
 
-    protected string $pkgHandle = 'xmailer';
-    protected string $appVersionRequired = '8.5.4';
-    protected string $pkgVersion = '2.2';
-    protected array $pkgAutoloaderRegistries = array(
+    protected $pkgHandle = 'xmailer';
+    protected $appVersionRequired = '8.5.4';
+    protected $pkgVersion = '2.2';
+    protected $pkgAutoloaderRegistries = array(
         'src/' => '\Xmailer'
     );
 

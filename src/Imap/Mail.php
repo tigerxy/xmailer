@@ -45,13 +45,30 @@ class Mail extends ezcMail
             'Received-SPF',
             'Received',
             'User-Agent',
-            'X-bounce-key',
-            'X-HE-SMSGID',
-            'X-NC-CID',
-            'X-Original-To',
+            'DKIM-Signature',
+            'Content-Type',
+            'Content-Transfer-Encoding',
+            'Bcc',
+            'Cc',
             'X-Spam-Checker-Version',
             'X-Spam-Level',
             'X-Spam-Status',
+            'X-Original-To',
+            'X-SecureMailgate-Identity',
+            'X-Originating-IP',
+            'X-SecureMailgate-Domain',
+            'X-SecureMailgate-Username',
+            'X-SecureMailgate-Outgoing-Class',
+            'X-SecureMailgate-Outgoing-Evidence',
+            'X-Recommended-Action',
+            'X-Filter-ID',
+            'X-Report-Abuse-To',
+            'X-Rspamd-Queue-Id',
+            'X-Spamd-Result',
+            'X-Rspamd-Server',
+            'X-NC-CID',
+            'X-PPP-Message-ID',
+            'X-PPP-Vhost',
         ]);
     }
 
@@ -106,11 +123,6 @@ class Mail extends ezcMail
         $this->to = array();
         $this->cc = array();
         $this->bcc = array();
-
-        $this->appendExcludeHeaders([
-            'bcc',
-            'cc',
-        ]);
 
         foreach ($this->assignedMailingLists as $list) {
             $this->addTo($list->address);
@@ -218,7 +230,7 @@ class Mail extends ezcMail
         if ($address != null) {
             $replyTo = $address->__toString();
         }
-        $this->setHeader('reply-to', $replyTo);
+        $this->setHeader('Reply-To', $replyTo);
     }
 
     private function getFrom(): ezcMailAddress
