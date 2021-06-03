@@ -19,6 +19,7 @@ class ProcessXmailer extends Job
     private const QUEUE = 'Queue';
     private const LIST = 'List';
     private const SPAM = 'Spam';
+    private const INVALID = 'Invalid';
 
     public function getJobName(): string
     {
@@ -45,6 +46,7 @@ class ProcessXmailer extends Job
         $processMailbox = new Mailbox($conn, self::PROCESS, $rootMailbox);
         $finishMailbox = new Mailbox($conn, self::FINISH, $processMailbox);
         $spamMailbox = new Mailbox($conn, self::SPAM, $processMailbox);
+        $invalidMailbox = new Mailbox($conn, self::INVALID, $processMailbox);
         $queueMailbox = new Mailbox($conn, self::QUEUE, $rootMailbox);
         $toListMailbox = new Mailbox($conn, self::LIST, $processMailbox);
 
@@ -58,7 +60,7 @@ class ProcessXmailer extends Job
                 ->addPageNameToSubject()
                 ->addFooter()
                 ->appendForEachMailingListMemberTo($queueMailbox)
-                ->moveToFinishElseSpam($finishMailbox, $spamMailbox);
+                ->moveToFolderFinishSpamInvalid($finishMailbox, $spamMailbox, $invalidMailbox);
         }
         $conn->expunge();
 
@@ -72,7 +74,7 @@ class ProcessXmailer extends Job
                     ->addPageNameToSubject()
                     ->addFooter()
                     ->appendForEachMailingListMemberTo($queueMailbox)
-                    ->moveToFinishElseSpam($finishMailbox, $spamMailbox);
+                    ->moveToFolderFinishSpamInvalid($finishMailbox, $spamMailbox, $invalidMailbox);
             }
             $conn->expunge();
         }

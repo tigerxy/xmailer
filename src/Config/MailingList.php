@@ -31,6 +31,9 @@ class MailingList
     {
         $group = Group::getByID($this->groupId);
 
+        if (empty($group))
+            throw new ConfigError("Cannot find groupId($this->groupId)");
+
         $user_list = new UserList();
         $user_list->ignorePermissions();
         $user_list->includeInactiveUsers();
@@ -46,6 +49,11 @@ class MailingList
         return array_map(function (UserInfo $member): ezcMailAddress {
             return new ezcMailAddress($member->getUserEmail(), $member->getUserName());
         }, $user_list->getResults());
+    }
+
+    public function isReceiver(ezcMailAddress $email) : bool
+    {
+        return $this->address->email == $email->email;
     }
 
     /**

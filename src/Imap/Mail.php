@@ -36,6 +36,10 @@ class Mail extends ezcMail
     public int $messageNr = 0;
     public MailingLists $assignedMailingLists;
 
+    private bool $isInvalid = false;
+    private bool $isSpam = false;
+    private bool $debug = false;
+
     public function __construct()
     {
         parent::__construct();
@@ -86,10 +90,20 @@ class Mail extends ezcMail
     public function findReceivingMailingLists(MailingLists $lists): Mail
     {
         $receivers = $this->getAllReceivers();
-        $matches = $this->array_inner_join($lists->toArray(), $receivers, function (MailingList $list, ezcMailAddress $recv) {
-            return $recv->email == $list->address->email;
+        if (empty($receivers)) {
+            $this->isInvalid = true;
+            return $this;
+        }
+        $matchingMailingLists = $this->array_inner_join($lists->toArray(), $receivers, function (MailingList $list, ezcMailAddress $receiver) {
+            return $list->isReceiver($receiver);
         });
-        $this->assignedMailingLists = new MailingLists($matches);
+
+        if (empty($matchingMailingLists)) {
+            $this->isSpam = true;
+            return $this;
+        }
+
+        $this->assignedMailingLists = new MailingLists($matchingMailingLists);
         return $this;
     }
 
@@ -111,15 +125,32 @@ class Mail extends ezcMail
      */
     public function isSenderMemberOrWhitelisted(): Mail
     {
-        // TODO: Ignore if user is whitelisted
+        if (empty($this->from))
+            $this->isInvalid = true;
+
+        if ($this->isSpamOrInvalid() || $this->senderIsWhitelisted())
+            return $this;
+
         $this->assignedMailingLists = new MailingLists(array_filter($this->assignedMailingLists->toArray(), function (MailingList $list) {
             return $list->isMemberOfList($this->from);
         }));
+
+        if (empty($this->assignedMailingLists->toArray()))
+            $this->isSpam = true;
+
         return $this;
+    }
+
+    private function senderIsWhitelisted(): bool
+    {
+        return in_array($this->from->email, (new Config())->getAllow());
     }
 
     public function cleanHeaders(): Mail
     {
+        if ($this->isSpamOrInvalid())
+            return $this;
+
         $this->to = array();
         $this->cc = array();
         $this->bcc = array();
@@ -137,6 +168,9 @@ class Mail extends ezcMail
      */
     public function appendForEachMailingListMemberTo(Mailbox $mbox): Mail
     {
+        if ($this->isSpamOrInvalid())
+            return $this;
+
         $backup_to = $this->getTo();
         foreach ($this->assignedMailingLists as $list) {
             $this->setReplyTo($this->getFrom());
@@ -165,26 +199,31 @@ class Mail extends ezcMail
     /**
      * @throws ConnectionError
      */
-    public function moveToFinishElseSpam(Mailbox $finish, Mailbox $spam): Mail
+    public function moveToFolderFinishSpamInvalid(Mailbox $finish, Mailbox $spam, Mailbox $invalid): Mail
     {
-        if ($this->assignedMailingLists->empty()) {
+        if ($this->isSpam)
             return $this->moveTo($spam);
-        } else {
+        elseif ($this->isInvalid)
+            return $this->moveTo($invalid);
+        else
             return $this->moveTo($finish);
-        }
     }
 
     /**
      * @throws ConnectionError
      */
-    public function moveTo(Mailbox $mbox): Mail
+    private function moveTo(Mailbox $mbox): Mail
     {
+        if ($this->debug) return $this;
         $this->mailbox->moveMail($this, $mbox);
         return $this;
     }
 
     public function addPageNameToSubject(): Mail
     {
+        if ($this->isSpamOrInvalid())
+            return $this;
+
         $config = new Config();
         if ($config->getAddPageName()) {
             $pageName = Config::getConfig()->get('concrete.site');
@@ -195,22 +234,20 @@ class Mail extends ezcMail
 
     public function addFooter(): Mail
     {
-        $context = new ezcMailPartWalkContext(function (ezcMailPartWalkContext $context, ezcMailText $mailPart) {
-            if ($mailPart->subType == "html") {
-                $mailPart->text .= "<br/><br/>" . Config::getConfig()->get('xmailer.footer.html');
-            }
-            if ($mailPart->subType == "plain") {
-                $mailPart->text .= PHP_EOL . PHP_EOL . Config::getConfig()->get('xmailer.footer.plain');
+        if ($this->isSpamOrInvalid())
+            return $this;
+
+        $context = new ezcMailPartWalkContext(function (ezcMailPartWalkContext $context, $mailPart) {
+            if ($mailPart instanceof ezcMailText) {
+                if ($mailPart->subType == "html") {
+                    $mailPart->text .= "<br/><br/>" . Config::getConfig()->get('xmailer.footer.html');
+                }
+                if ($mailPart->subType == "plain") {
+                    $mailPart->text .= PHP_EOL . PHP_EOL . Config::getConfig()->get('xmailer.footer.plain');
+                }
             }
         });
         $this->walkParts($context, $this);
-        return $this;
-    }
-
-    public function debug(string $msg): Mail
-    {
-        echo '\n\n' . $msg;
-        var_dump($this);
         return $this;
     }
 
@@ -241,5 +278,10 @@ class Mail extends ezcMail
     private function setFrom(ezcMailAddress $address): void
     {
         $this->from = $address;
+    }
+
+    private function isSpamOrInvalid(): bool
+    {
+        return $this->isSpam || $this->isInvalid;
     }
 }
