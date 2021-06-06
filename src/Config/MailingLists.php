@@ -9,8 +9,7 @@ class MailingLists extends ArrayIterator
     public function readFromConfig(): void
     {
         if ($this->empty()) {
-            $config = Config::getConfig()->get('xmailer.lists');
-            foreach ($config as $list) {
+            foreach (Config::getLists() as $list) {
                 $this->append(new MailingList($list));
             }
         }

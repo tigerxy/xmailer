@@ -11,7 +11,6 @@ use Xmailer\ConfigError;
 
 class MailingList
 {
-    private const USER_ATTRIBUTE_FOR_FILTER = "mailingliste";
     public ezcMailAddress $address;
     public string $mailbox;
     public int $groupId;
@@ -37,8 +36,7 @@ class MailingList
         $user_list = new UserList();
         $user_list->ignorePermissions();
         $user_list->includeInactiveUsers();
-        // TODO: Move attribute "mailingliste" to Config
-        $attribute = self::USER_ATTRIBUTE_FOR_FILTER;
+        $attribute = (new Config())->getUserAttribute();
         try {
             $user_list->filterByAttribute($attribute, true);
         } catch (Exception $e) {
@@ -67,15 +65,5 @@ class MailingList
             }
         }
         return false;
-    }
-
-    public function jsonSerialize(): array
-    {
-        return [
-            'name' => $this->address->name,
-            'email' => $this->address->email,
-            'mailbox' => $this->mailbox,
-            'grpId' => $this->groupId
-        ];
     }
 }

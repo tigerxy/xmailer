@@ -6,21 +6,26 @@ use Concrete\Core\Support\Facade\Application;
 
 abstract class AbstractConfig
 {
-    protected String $path = 'xmailer';
-    //public function __construct() {}
-    public static function getConfig() {
+    const path = 'xmailer';
+
+    public static function getConfig()
+    {
         $app = Application::getFacadeApplication();
         return $app->make('config');
     }
 
-    protected function getVal(String $name)
+    public static function get(string $name, string $path = self::path)
     {
-        $config = self::getConfig();
-        return $config->get($this->path . '.' . $name);
+        return self::getConfig()->get($path . "." . $name);
     }
-    protected function setVal(String $name, $val)
+
+    public static function getAll()
     {
-        $config = self::getConfig();
-        $config->save($this->path . '.' . $name, $val);
+        return self::getConfig()->get(self::path);
+    }
+
+    public static function set(string $name, $val, string $path = self::path)
+    {
+        self::getConfig()->save($path . "." . $name, $val);
     }
 }

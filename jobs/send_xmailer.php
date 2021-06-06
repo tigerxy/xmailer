@@ -27,11 +27,9 @@ class SendXmailer extends Job
      */
     public function run()
     {
-        $config = new Config();
-
         $conn = new Imap();
         $rootMailbox = new Mailbox($conn, 'INBOX');
         $queueMailbox = new Mailbox($conn, 'Queue', $rootMailbox);
-        $queueMailbox->sendFirst($config->getAmountSendPerRun());
+        $queueMailbox->sendFirst(Config::getAmountSendPerRun());
     }
 }

@@ -23,20 +23,19 @@ class Imap extends ezcMailImapTransport
 
     public function __construct()
     {
-        $config = new ImapConfig();
         $this->imap_conn_options = new ezcMailImapTransportOptions();
-        $this->imap_conn_options->ssl = $config->useSSL();
+        $this->imap_conn_options->ssl = ImapConfig::useSSL();
         $this->imap_conn_options->uidReferencing = true;
 
         parent::__construct(
-            $config->getHost(),
-            $config->getPort(),
+            ImapConfig::getHost(),
+            ImapConfig::getPort(),
             $this->imap_conn_options
         );
 
         $this->authenticate(
-            $config->getUser(),
-            $config->getPass()
+            ImapConfig::getUser(),
+            ImapConfig::getPass()
         );
     }
 

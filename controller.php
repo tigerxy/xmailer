@@ -13,9 +13,9 @@ class Controller extends Package
 {
 
     protected $pkgHandle = 'xmailer';
-    protected $appVersionRequired = '8.5.4';
+    protected string $appVersionRequired = '8.5.4';
     protected $pkgVersion = '2.2';
-    protected $pkgAutoloaderRegistries = array(
+    protected array $pkgAutoloaderRegistries = array(
         'src/' => '\Xmailer'
     );
 

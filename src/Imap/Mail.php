@@ -143,7 +143,7 @@ class Mail extends ezcMail
 
     private function senderIsWhitelisted(): bool
     {
-        return in_array($this->from->email, (new Config())->getAllow());
+        return in_array($this->from->email, Config::getAllow());
     }
 
     public function cleanHeaders(): Mail
@@ -224,9 +224,8 @@ class Mail extends ezcMail
         if ($this->isSpamOrInvalid())
             return $this;
 
-        $config = new Config();
-        if ($config->getAddPageName()) {
-            $pageName = Config::getConfig()->get('concrete.site');
+        if (Config::getAddPageName()) {
+            $pageName = Config::get('site','concrete');
             $this->subject = '[' . $pageName . '] ' . $this->subject;
         }
         return $this;
@@ -240,10 +239,10 @@ class Mail extends ezcMail
         $context = new ezcMailPartWalkContext(function (ezcMailPartWalkContext $context, $mailPart) {
             if ($mailPart instanceof ezcMailText) {
                 if ($mailPart->subType == "html") {
-                    $mailPart->text .= "<br/><br/>" . Config::getConfig()->get('xmailer.footer.html');
+                    $mailPart->text .= "<br/><br/>" . Config::getFooterHtml();
                 }
                 if ($mailPart->subType == "plain") {
-                    $mailPart->text .= PHP_EOL . PHP_EOL . Config::getConfig()->get('xmailer.footer.plain');
+                    $mailPart->text .= PHP_EOL . PHP_EOL . Config::getFooterPlain();
                 }
             }
         });

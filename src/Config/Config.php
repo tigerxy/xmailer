@@ -2,80 +2,106 @@
 
 namespace Xmailer\Config;
 
-use JsonSerializable;
-/*
-use Xmailer\Config\Imap;
-use Xmailer\Config\Smtp;
-use Xmailer\Config\AbstractConfig as AbstractConfig;
-*/
-
-class Config extends AbstractConfig implements JsonSerializable
+class Config extends AbstractConfig
 {
-    public ImapConfig $imap;
-    public SmtpConfig $smtp;
     public MailingLists $mailingLists;
+
     public function __construct()
     {
-        $this->imap = new ImapConfig();
-        $this->smtp = new SmtpConfig();
         $this->mailingLists = new MailingLists();
         $this->mailingLists->readFromConfig();
     }
-    public function getSpam(): Bool
+
+    public static function getSpam(): bool
     {
-        return $this->getVal('spam');
+        return self::get('spam');
     }
-    public function getReplyTo(): Bool
+
+    public static function getReplyTo(): bool
     {
-        return $this->getVal('replyTo');
+        return self::get('replyTo');
     }
-    public function getAllow(): array
+
+    public static function getAllow(): array
     {
-        return $this->getVal('allow');
+        return self::get('allow');
     }
-    public function getAddPageName(): Bool
+
+    public static function getAddPageName(): bool
     {
-        return $this->getVal('addPageName');
+        return self::get('addPageName');
     }
-    public function getAmountSendPerRun(): Int
+
+    public static function getAmountSendPerRun(): int
     {
         return 10;
     }
-    public function setSpam(Bool $val)
+
+    public static function getUserAttribute()
     {
-        $this->setVal('spam', $val);
+        return self::get('userAttribute');
     }
-    public function setReplyTo(Bool $val)
+
+    public static function getFooter()
     {
-        $this->setVal('replyTo', $val);
+        return self::get('footer');
     }
-    public function setAllow(Bool $val)
+
+    public static function getFooterHtml()
     {
-        $this->setVal('allow', $val);
+        return self::get('footer.html');
     }
-    public function setAddPageName(Bool $val)
+
+    public static function getFooterPlain()
     {
-        $this->setVal('addPageName', $val);
+        return self::get('footer.plain');
     }
-    public function allSslOptionsToJson(): array
+
+    public static function getLists()
+    {
+        return self::get('lists');
+    }
+
+    public static function setSpam(bool $val)
+    {
+        self::set('spam', $val);
+    }
+
+    public static function setReplyTo(bool $val)
+    {
+        self::set('replyTo', $val);
+    }
+
+    public static function setAddPageName(bool $val)
+    {
+        self::set('addPageName', $val);
+    }
+
+    public static function setAllow(array $val)
+    {
+        self::set('allow', $val);
+    }
+
+    public static function setFooter(array $footer)
+    {
+        self::set('footer', $footer);
+    }
+
+    public static function setUserAttribute(string $attribute)
+    {
+        self::set('userAttribute', $attribute);
+    }
+
+    public static function setLists(array $lists)
+    {
+        self::set('lists', $lists);
+    }
+
+    public static function allSslOptions(): array
     {
         return [
-            "imap" => $this->imap->ssl_options->toArray(),
-            "smtp" => $this->smtp->ssl_options->toArray(),
-        ];
-    }
-    public function jsonSerialize($hidePassword = True): array
-    {
-        return [
-            'spam' => $this->getSpam(),
-            'replyTo' => $this->getReplyTo(),
-            'addPageName' => $this->getAddPageName(),
-            'imap' => $this->imap->jsonSerialize($hidePassword),
-            'smtp' => $this->smtp->jsonSerialize($hidePassword),
-            'allow' => $this->getAllow(),
-            'lists' => array_map(function ($list) {
-                return $list->jsonSerialize();
-            }, $this->mailingLists->toArray())
+            "imap" => ImapConfig::ssl_options,
+            "smtp" => SmtpConfig::ssl_options,
         ];
     }
 }
